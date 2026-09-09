@@ -1,0 +1,10 @@
+nohup: ignoring input
+▲ Next.js 16.3.4 (webpack)
+- Local:         http://localhost:3010
+- Network:       http://0.0.0.0:3010
+✓ Ready in 2.8s
+✓ Running next.config.mjs took 69ms
+  Skipping creating a lockfile at /data/data/com.termux/files/home/wassal_ai/.next/dev/lock because we're using WASM bindings
+
+○ Compiling /agent ...
+[?25h
