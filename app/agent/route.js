@@ -537,7 +537,7 @@ main{
   }
 
 
-  function send(){
+  async function send(){
 
     const text = chatInput.value.trim();
 
@@ -557,10 +557,64 @@ main{
 
     }else{
 
-      addMessage(
-        "🤖 وصلت المهمة إلى WASSAL AI Agent.",
-        false
-      );
+      addMessage("🤖 جاري تنفيذ المهمة...", false);
+
+      try {
+        const response = await fetch("/api/agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: text
+          })
+        });
+
+        const data = await response.json();
+
+        if(data.success){
+
+          addMessage(
+            data.reply || "✅ تم تنفيذ المهمة.",
+            false
+          );
+
+          if(data.tool === "open_url" && data.result?.url){
+
+            const link = document.createElement("a");
+            link.href = data.result.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "🌐 فتح الصفحة";
+            link.style.display = "inline-block";
+            link.style.marginTop = "8px";
+            link.style.fontWeight = "bold";
+
+            const rows = messages.lastElementChild;
+            const bubble = rows?.querySelector(".bubble");
+
+            if(bubble){
+              bubble.appendChild(link);
+            }
+          }
+
+        }else{
+
+          addMessage(
+            "❌ " + (data.error || "تعذر تنفيذ المهمة."),
+            false
+          );
+
+        }
+
+      } catch(error) {
+
+        addMessage(
+          "❌ تعذر الاتصال بـ WASSAL AI Agent.",
+          false
+        );
+
+      }
 
     }
 
