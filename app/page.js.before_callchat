@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 const navItems = [
   "Dashboard",
   "AI Agent",
-  "WhatsApp",
+  "Call & Chat",
   "Voice",
   "Analytics",
   "Billing",
@@ -19,7 +19,6 @@ const icons = {
   "AI Agent": "✦",
   Conversations: "◌",
   Contacts: "♙",
-  "WhatsApp": "📱",
   WhatsApp: "◉",
   Voice: "◖",
   Analytics: "◒",
@@ -272,7 +271,7 @@ export default function Home() {
             setAgentOn={setAgentOn}
             setActive={setActive}
           />
-        ) : active === "WhatsApp" ? (
+        ) : active === "Call & Chat" ? (
           <CallChatPage />
         ) : active === "Voice" ? (
           <VoicePage />
@@ -3083,431 +3082,207 @@ function VoicePage() {
   );
 }
 
-
-
 function CallChatPage() {
-  const [chooseOpen, setChooseOpen] = useState(false);
+  const [tab, setTab] = useState("Chat");
   const [number, setNumber] = useState("");
   const [message, setMessage] = useState("");
-  const [agentCommand, setAgentCommand] = useState("");
-  const [agentReply, setAgentReply] = useState("");
-  const [agentReady, setAgentReady] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState("");
-  const [busy, setBusy] = useState(false);
 
-  const normalizeLebanon = (value) => {
-    let n = String(value || "").replace(/[^\d+]/g, "");
+  function cleanNumber(value) {
+    let phone = value.trim().replace(/[\s().-]/g, "");
 
-    if (n.startsWith("+961")) {
-      return n;
+    if (phone.startsWith("00")) phone = "+" + phone.slice(2);
+
+    if (
+      phone.startsWith("03") ||
+      phone.startsWith("70") ||
+      phone.startsWith("71") ||
+      phone.startsWith("76") ||
+      phone.startsWith("78") ||
+      phone.startsWith("79") ||
+      phone.startsWith("81")
+    ) {
+      phone = "+961" + phone;
+    } else if (/^3\d{7}$/.test(phone)) {
+      phone = "+961" + phone;
+    } else if (/^[78]\d{7}$/.test(phone)) {
+      phone = "+961" + phone;
     }
 
-    if (n.startsWith("00961")) {
-      return "+" + n.slice(2);
-    }
+    return phone;
+  }
 
-    if (/^0\d{7,8}$/.test(n)) {
-      return "+961" + n.slice(1);
-    }
+  function openWhatsApp() {
+    const phone = cleanNumber(number);
 
-    if (/^\d{7,8}$/.test(n)) {
-      return "+961" + n;
-    }
-
-    return n;
-  };
-
-  const chooseContact = async () => {
-    try {
-      if (!navigator.contacts?.select) {
-        alert("Contact Picker is not supported by this browser.");
-        return;
-      }
-
-      const contacts = await navigator.contacts.select(
-        ["name", "tel"],
-        { multiple: false }
-      );
-
-      if (contacts?.length) {
-        const contact = contacts[0];
-        const rawNumber = Array.isArray(contact.tel)
-          ? contact.tel[0]
-          : contact.tel || "";
-
-        setNumber(normalizeLebanon(rawNumber));
-        setChooseOpen(false);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const openWhatsApp = () => {
-    const clean = normalizeLebanon(number);
-
-    if (!clean) {
-      alert("Choose or enter a WhatsApp number first.");
+    if (!phone) {
+      alert("Enter a phone number first.");
       return;
     }
 
-    if (!message.trim()) {
-      alert("Write a message first.");
+    window.open(
+      "https://wa.me/" + phone.replace("+", ""),
+      "_blank"
+    );
+  }
+
+  function startCall() {
+    const phone = cleanNumber(number);
+
+    if (!phone) {
+      alert("Enter a phone number first.");
       return;
     }
 
-    const digits = clean.replace(/\D/g, "");
-    const url =
-      "https://wa.me/" +
-      digits +
-      "?text=" +
-      encodeURIComponent(message.trim());
-
-    window.open(url, "_blank");
-  };
-
-  const startRecording = async () => {
-    try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        alert("Voice recording is not supported by this browser.");
-        return;
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-
-      const chunks = [];
-      const recorder = new MediaRecorder(stream);
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        setAudioUrl(URL.createObjectURL(blob));
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      recorder.start();
-      setRecording(true);
-
-      setTimeout(() => {
-        if (recorder.state !== "inactive") {
-          recorder.stop();
-          setRecording(false);
-        }
-      }, 60000);
-
-      window.__wassalRecorder = recorder;
-    } catch (error) {
-      console.error(error);
-      alert("Microphone permission is required.");
-    }
-  };
-
-  const stopRecording = () => {
-    const recorder = window.__wassalRecorder;
-
-    if (recorder && recorder.state !== "inactive") {
-      recorder.stop();
-    }
-
-    setRecording(false);
-  };
-
-  const prepareAgent = async () => {
-    if (!agentCommand.trim()) {
-      alert("Write or speak a command for the AI Agent.");
-      return;
-    }
-
-    setBusy(true);
-    setAgentReady(false);
-    setAgentReply("");
-
-    try {
-      const response = await fetch("/api/agent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message:
-            "Prepare this WhatsApp operation for user confirmation. " +
-            "DO NOT execute, send, call, book, or perform any external action. " +
-            "Only prepare the operation and explain what will happen. " +
-            "Selected WhatsApp number: " +
-            (number || "not selected") +
-            ". Current message: " +
-            (message || "empty") +
-            ". User command: " +
-            agentCommand,
-        }),
-      });
-
-      const data = await response.json();
-
-      const reply =
-        data.reply ||
-        data.message ||
-        "The AI prepared the request. Please review it before sending.";
-
-      setAgentReply(reply);
-      setAgentReady(true);
-    } catch (error) {
-      console.error(error);
-
-      setAgentReply(
-        "AI preparation is ready, but the AI engine is currently unavailable. " +
-        "Review the command and message before sending."
-      );
-
-      setAgentReady(true);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const executeAgent = () => {
-    if (!agentReady) return;
-
-    if (!number) {
-      alert("Choose the WhatsApp number first.");
-      return;
-    }
-
-    if (!message.trim()) {
-      alert("There is no prepared WhatsApp message to send.");
-      return;
-    }
-
-    openWhatsApp();
-  };
-
-  const handleAgentVoice = async () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert("Voice recognition is not supported by this browser.");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "ar-LB";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      setAgentCommand(text);
-    };
-
-    recognition.onerror = (event) => {
-      console.error(event.error);
-    };
-
-    recognition.start();
-  };
+    window.location.href = "tel:" + phone;
+  }
 
   return (
-    <div className="module-page">
-      <div className="module-header">
-        <div>
-          <h1>WHATSAPP</h1>
-          <p>Messages, contacts and AI-powered WhatsApp actions</p>
+    <div className="page">
+      <section className="card settings-card">
+
+        <div className="card-head">
+          <div>
+            <h3>Call & Chat</h3>
+            <p>Contacts, conversations, calls and WhatsApp in one place.</p>
+          </div>
         </div>
-      </div>
 
-      <div className="module-card">
-        <h2>CHOOSE NUMBER</h2>
-
-        <button
-          className="primary-btn"
-          onClick={() => setChooseOpen(!chooseOpen)}
-        >
-          {chooseOpen ? "CLOSE" : "CHOOSE NUMBER"}
-        </button>
-
-        {chooseOpen && (
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              flexWrap: "wrap",
-              marginTop: "14px",
-            }}
-          >
-            <button className="secondary-btn" onClick={chooseContact}>
-              👤 Choose from Contacts
-            </button>
-
+        <div className="callchat-tabs">
+          {["Chat", "Contacts", "Calling", "WhatsApp"].map((item) => (
             <button
-              className="secondary-btn"
-              onClick={() => setChooseOpen(false)}
+              key={item}
+              type="button"
+              className={tab === item ? "callchat-tab active" : "callchat-tab"}
+              onClick={() => setTab(item)}
             >
-              📱 Enter Number
+              {item === "Chat" && "💬 "}
+              {item === "Contacts" && "👥 "}
+              {item === "Calling" && "📞 "}
+              {item === "WhatsApp" && "🟢 "}
+              {item}
             </button>
-          </div>
-        )}
-
-        {(!chooseOpen || number) && (
-          <div style={{ marginTop: "14px" }}>
-            <input
-              value={number}
-              onChange={(e) => setNumber(normalizeLebanon(e.target.value))}
-              placeholder="Enter Number"
-              className="module-input"
-              inputMode="tel"
-            />
-          </div>
-        )}
-
-        {number && (
-          <div
-            style={{
-              marginTop: "10px",
-              padding: "10px 12px",
-              borderRadius: "10px",
-              background: "rgba(34,197,94,.10)",
-            }}
-          >
-            Selected: <strong>{number}</strong>
-          </div>
-        )}
-      </div>
-
-      <div className="module-card">
-        <h2>WHATSAPP MESSAGE</h2>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            alignItems: "stretch",
-            flexWrap: "wrap",
-          }}
-        >
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Write Message..."
-            className="module-textarea"
-            style={{ flex: "1 1 300px", minHeight: "110px" }}
-          />
-
-          <button
-            className="primary-btn"
-            onClick={openWhatsApp}
-            style={{ minWidth: "110px" }}
-          >
-            SEND
-          </button>
+          ))}
         </div>
 
-        <div style={{ marginTop: "12px" }}>
-          {!recording ? (
-            <button className="secondary-btn" onClick={startRecording}>
-              🎙️ Microphone
-            </button>
-          ) : (
-            <button className="danger-btn" onClick={stopRecording}>
-              ⏹ Stop Recording
-            </button>
-          )}
-        </div>
+        <div className="callchat-panel">
 
-        {audioUrl && (
-          <audio
-            controls
-            src={audioUrl}
-            style={{ width: "100%", marginTop: "12px" }}
-          />
-        )}
-      </div>
+          {tab === "Chat" && (
+            <div>
+              <h4>💬 Conversations</h4>
+              <p>Start a conversation with a contact.</p>
 
-      <div className="module-card">
-        <h2>WHATSAPP AGENT AI</h2>
+              <input
+                className="callchat-input"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
+                placeholder="Phone number"
+              />
 
-        <p style={{ opacity: 0.75 }}>
-          Give the AI a command by text or voice. The AI prepares the operation
-          first and waits for your confirmation.
-        </p>
+              <textarea
+                className="callchat-textarea"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Write your message..."
+              />
 
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            alignItems: "stretch",
-            flexWrap: "wrap",
-            marginTop: "12px",
-          }}
-        >
-          <textarea
-            value={agentCommand}
-            onChange={(e) => setAgentCommand(e.target.value)}
-            placeholder='Example: "اختار مروان واكتبله بدي موعد بكرا الساعة 5"'
-            className="module-textarea"
-            style={{ flex: "1 1 300px", minHeight: "100px" }}
-          />
+              <div className="callchat-actions">
+                <button
+                  className="primary"
+                  type="button"
+                  onClick={openWhatsApp}
+                >
+                  🟢 Send on WhatsApp
+                </button>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
-            <button
-              className="secondary-btn"
-              onClick={handleAgentVoice}
-            >
-              🎙️ AI VOICE
-            </button>
-
-            <button
-              className="primary-btn"
-              onClick={prepareAgent}
-              disabled={busy}
-            >
-              {busy ? "PREPARING..." : "PREPARE"}
-            </button>
-          </div>
-        </div>
-
-        {agentReply && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "16px",
-              borderRadius: "12px",
-              border: "1px solid rgba(127,127,127,.25)",
-            }}
-          >
-            <strong>AI PREPARED OPERATION</strong>
-
-            <div style={{ marginTop: "10px", whiteSpace: "pre-wrap" }}>
-              {agentReply}
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={startCall}
+                >
+                  📞 Call
+                </button>
+              </div>
             </div>
+          )}
 
-            {agentReady && (
+          {tab === "Contacts" && (
+            <div>
+              <h4>👥 Contacts</h4>
+              <p>Manage and use your contact numbers.</p>
+
+              <input
+                className="callchat-input"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
+                placeholder="Phone number"
+              />
+
+              <div className="callchat-actions">
+                <button
+                  className="primary"
+                  type="button"
+                  onClick={openWhatsApp}
+                >
+                  🟢 WhatsApp
+                </button>
+
+                <button
+                  className="secondary"
+                  type="button"
+                  onClick={startCall}
+                >
+                  📞 Start Call
+                </button>
+              </div>
+            </div>
+          )}
+
+          {tab === "Calling" && (
+            <div>
+              <h4>📞 Calling</h4>
+              <p>Make a phone call using the selected number.</p>
+
+              <input
+                className="callchat-input"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
+                placeholder="Phone number"
+              />
+
               <button
-                className="primary-btn"
-                onClick={executeAgent}
-                style={{ marginTop: "14px" }}
+                className="primary"
+                type="button"
+                onClick={startCall}
               >
-                SEND / EXECUTE
+                📞 Call Number
               </button>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+
+          {tab === "WhatsApp" && (
+            <div>
+              <h4>🟢 WhatsApp</h4>
+              <p>Open a WhatsApp conversation with a phone number.</p>
+
+              <input
+                className="callchat-input"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
+                placeholder="Phone number"
+              />
+
+              <button
+                className="primary"
+                type="button"
+                onClick={openWhatsApp}
+              >
+                🟢 Open WhatsApp
+              </button>
+            </div>
+          )}
+
+        </div>
+      </section>
     </div>
   );
 }

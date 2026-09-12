@@ -1,0 +1,2474 @@
+"use client";
+
+import { useState } from "react";
+
+const navItems = [
+  "Dashboard",
+  "AI Agent",
+  "Conversations",
+  "Contacts",
+  "WhatsApp",
+  "Voice",
+  "Analytics",
+  "Billing",
+  "Settings",
+  "Admin",
+];
+
+const icons = {
+  Dashboard: "⌂",
+  "AI Agent": "✦",
+  Conversations: "◌",
+  Contacts: "♙",
+  WhatsApp: "◉",
+  Voice: "◖",
+  Analytics: "◒",
+  Billing: "$",
+  Settings: "⚙",
+  Admin: "♜",
+};
+
+export default function Home() {
+  const [active, setActive] = useState("Dashboard");
+  const [agentOn, setAgentOn] = useState(true);
+
+  return (
+    <main className="app">
+      <div className="background-grid" />
+      <div className="glow glow-one" />
+      <div className="glow glow-two" />
+
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-logo">W</div>
+          <div>
+            <strong>WASSAL</strong>
+            <span>AI AGENTS</span>
+          </div>
+        </div>
+
+        <div className="workspace">
+          <span>MY WORKSPACE</span>
+          <b>⌄</b>
+        </div>
+
+        <nav>
+          {navItems.map((item) => (
+            <button
+              key={item}
+              className={active === item ? "nav-item active" : "nav-item"}
+              onClick={() => setActive(item)}
+            >
+              <span className="nav-icon">{icons[item]}</span>
+              <span>{item}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="trial">
+            <small>CURRENT PLAN</small>
+            <strong>Free Trial</strong>
+            <button>Upgrade →</button>
+          </div>
+
+          <div className="account">
+            <div className="avatar">M</div>
+            <div>
+              <strong>My Workspace</strong>
+              <small>Administrator</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section className="content">
+        <header className="topbar">
+          <div>
+            <div className="breadcrumb">WASSAL AI / {active.toUpperCase()}</div>
+            <h1>{active}</h1>
+            <p>
+              {active === "Dashboard"
+                ? "Your AI operations at a glance."
+                : `Manage your ${active.toLowerCase()} from one place.`}
+            </p>
+          </div>
+
+          <div className="top-actions">
+            <button className="top-button">⌕</button>
+            <button className="top-button">◐</button>
+            <div className="profile">M</div>
+          </div>
+        </header>
+
+        {active === "Dashboard" ? (
+          <Dashboard
+            agentOn={agentOn}
+            setAgentOn={setAgentOn}
+          />
+        ) : active === "Conversations" ? (
+          <ConversationsPage />
+        ) : active === "Contacts" ? (
+          <ContactsPage />
+        ) : (
+          <ModulePage title={active} />
+        )}
+      </section>
+
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          min-height: 100%;
+          background: #05070d;
+          color: #f5f7fb;
+          font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+        }
+
+        body {
+          overflow-x: hidden;
+        }
+
+        button {
+          font: inherit;
+        }
+
+        .app {
+          position: relative;
+          min-height: 100vh;
+          display: flex;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 75% 15%, rgba(67, 112, 255, 0.12), transparent 28%),
+            radial-gradient(circle at 45% 85%, rgba(0, 214, 255, 0.07), transparent 30%),
+            #05070d;
+        }
+
+        .background-grid {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.28;
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+          background-size: 45px 45px;
+          mask-image: linear-gradient(to bottom, black, transparent 90%);
+        }
+
+        .glow {
+          position: fixed;
+          width: 420px;
+          height: 420px;
+          border-radius: 50%;
+          filter: blur(100px);
+          pointer-events: none;
+          opacity: 0.12;
+        }
+
+        .glow-one {
+          top: -180px;
+          right: 5%;
+          background: #346cff;
+        }
+
+        .glow-two {
+          bottom: -220px;
+          left: 35%;
+          background: #00bfff;
+        }
+
+        .sidebar {
+          position: relative;
+          z-index: 5;
+          width: 255px;
+          min-height: 100vh;
+          padding: 24px 16px;
+          display: flex;
+          flex-direction: column;
+          border-right: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(5, 7, 13, 0.82);
+          backdrop-filter: blur(18px);
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 4px 10px 28px;
+        }
+
+        .brand-logo {
+          width: 38px;
+          height: 38px;
+          display: grid;
+          place-items: center;
+          border-radius: 11px;
+          font-size: 20px;
+          font-weight: 900;
+          background: linear-gradient(135deg, #5b7cff, #35d8ff);
+          box-shadow: 0 0 28px rgba(65, 130, 255, 0.3);
+        }
+
+        .brand strong {
+          display: block;
+          font-size: 17px;
+          letter-spacing: 2px;
+        }
+
+        .brand span {
+          display: block;
+          margin-top: 2px;
+          color: #71809b;
+          font-size: 8px;
+          letter-spacing: 2px;
+        }
+
+        .workspace {
+          margin: 0 5px 18px;
+          padding: 11px 12px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .workspace span {
+          color: #77849a;
+          font-size: 9px;
+          letter-spacing: 1.4px;
+        }
+
+        .workspace b {
+          color: #8190a8;
+        }
+
+        nav {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .nav-item {
+          position: relative;
+          width: 100%;
+          border: 0;
+          padding: 11px 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          border-radius: 9px;
+          color: #8290a8;
+          background: transparent;
+          text-align: left;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .nav-item:hover {
+          color: #e8edf7;
+          background: rgba(255, 255, 255, 0.045);
+        }
+
+        .nav-item.active {
+          color: #fff;
+          background: linear-gradient(
+            90deg,
+            rgba(70, 103, 255, 0.22),
+            rgba(70, 103, 255, 0.05)
+          );
+        }
+
+        .nav-item.active::before {
+          content: "";
+          position: absolute;
+          left: -16px;
+          width: 3px;
+          height: 24px;
+          border-radius: 0 5px 5px 0;
+          background: #6381ff;
+          box-shadow: 0 0 14px #6381ff;
+        }
+
+        .nav-icon {
+          width: 20px;
+          text-align: center;
+          color: #71819b;
+          font-size: 17px;
+        }
+
+        .nav-item.active .nav-icon {
+          color: #7c96ff;
+        }
+
+        .sidebar-bottom {
+          margin-top: auto;
+        }
+
+        .trial {
+          margin: 16px 4px;
+          padding: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .trial small {
+          display: block;
+          color: #6e7b92;
+          font-size: 9px;
+          letter-spacing: 1.3px;
+        }
+
+        .trial strong {
+          display: block;
+          margin: 5px 0 10px;
+          font-size: 13px;
+        }
+
+        .trial button {
+          border: 0;
+          padding: 0;
+          color: #7590ff;
+          background: transparent;
+          font-size: 11px;
+          cursor: pointer;
+        }
+
+        .account {
+          padding: 14px 8px 4px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .avatar {
+          width: 34px;
+          height: 34px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: white;
+          font-weight: 800;
+          background: linear-gradient(135deg, #526dff, #27bce9);
+        }
+
+        .account strong {
+          display: block;
+          font-size: 12px;
+        }
+
+        .account small {
+          color: #68768d;
+          font-size: 10px;
+        }
+
+        .content {
+          position: relative;
+          z-index: 2;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .topbar {
+          min-height: 110px;
+          padding: 27px 42px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(5, 7, 13, 0.3);
+          backdrop-filter: blur(8px);
+        }
+
+        .breadcrumb {
+          margin-bottom: 7px;
+          color: #536178;
+          font-size: 9px;
+          letter-spacing: 1.5px;
+        }
+
+        h1 {
+          margin: 0;
+          font-size: 26px;
+          letter-spacing: -0.5px;
+        }
+
+        .topbar p {
+          margin: 5px 0 0;
+          color: #738198;
+          font-size: 12px;
+        }
+
+        .top-actions {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .top-button {
+          width: 37px;
+          height: 37px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 9px;
+          color: #8a98af;
+          background: rgba(255, 255, 255, 0.025);
+          cursor: pointer;
+        }
+
+        .profile {
+          width: 37px;
+          height: 37px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          font-weight: 800;
+          background: linear-gradient(135deg, #5069ff, #2bbce8);
+        }
+
+        .page {
+          max-width: 1450px;
+          margin: 0 auto;
+          padding: 30px 42px 50px;
+        }
+
+        .hero {
+          position: relative;
+          min-height: 165px;
+          padding: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          overflow: hidden;
+          border: 1px solid rgba(103, 131, 255, 0.17);
+          border-radius: 16px;
+          background:
+            radial-gradient(circle at 85% 30%, rgba(71, 111, 255, 0.16), transparent 35%),
+            linear-gradient(135deg, rgba(25, 35, 67, 0.65), rgba(10, 14, 26, 0.8));
+          box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+        }
+
+        .eyebrow {
+          color: #718aff;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 2px;
+        }
+
+        .hero h2 {
+          margin: 7px 0 7px;
+          font-size: 28px;
+          letter-spacing: -1px;
+        }
+
+        .hero p {
+          margin: 0;
+          color: #8290a7;
+          font-size: 13px;
+        }
+
+        .primary {
+          border: 0;
+          padding: 11px 16px;
+          border-radius: 9px;
+          color: white;
+          font-size: 12px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #536fff, #328ddf);
+          box-shadow: 0 8px 30px rgba(67, 103, 255, 0.2);
+          cursor: pointer;
+        }
+
+        .stats {
+          margin: 18px 0;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 14px;
+        }
+
+        .card {
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          border-radius: 14px;
+          background: rgba(10, 14, 24, 0.72);
+          box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+          backdrop-filter: blur(10px);
+        }
+
+        .stat {
+          min-height: 125px;
+          padding: 20px;
+        }
+
+        .stat small {
+          display: block;
+          color: #6f7d94;
+          font-size: 11px;
+        }
+
+        .stat strong {
+          display: block;
+          margin-top: 12px;
+          font-size: 29px;
+          letter-spacing: -1px;
+        }
+
+        .stat span {
+          color: #4fc6a1;
+          font-size: 10px;
+        }
+
+        .grid2 {
+          margin-bottom: 18px;
+          display: grid;
+          grid-template-columns: 1.2fr 0.8fr;
+          gap: 14px;
+        }
+
+        .card-inner {
+          padding: 20px;
+        }
+
+        .card-head {
+          padding: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .card-head h3 {
+          margin: 0;
+          font-size: 14px;
+        }
+
+        .card-head p {
+          margin: 5px 0 0;
+          color: #68768d;
+          font-size: 10px;
+        }
+
+        .status {
+          padding: 5px 8px;
+          border-radius: 20px;
+          color: #55d8ae;
+          background: rgba(66, 213, 167, 0.08);
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 1px;
+        }
+
+        .status.off {
+          color: #8793a7;
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .agent {
+          min-height: 95px;
+          padding: 17px 20px;
+          display: flex;
+          align-items: center;
+          gap: 13px;
+        }
+
+        .agent-icon {
+          width: 40px;
+          height: 40px;
+          display: grid;
+          place-items: center;
+          border-radius: 11px;
+          color: #9eb0ff;
+          background: rgba(82, 109, 255, 0.13);
+          font-size: 20px;
+        }
+
+        .agent b {
+          display: block;
+          font-size: 12px;
+        }
+
+        .agent p {
+          margin: 4px 0 0;
+          color: #69768d;
+          font-size: 10px;
+        }
+
+        .secondary {
+          margin-left: auto;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          padding: 8px 11px;
+          border-radius: 8px;
+          color: #a3afc1;
+          background: rgba(255, 255, 255, 0.025);
+          font-size: 10px;
+          cursor: pointer;
+        }
+
+        .channels {
+          padding: 5px 20px 10px;
+        }
+
+        .channel {
+          padding: 14px 0;
+          display: flex;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .channel:last-child {
+          border-bottom: 0;
+        }
+
+        .channel b {
+          font-size: 11px;
+        }
+
+        .channel span {
+          color: #66748b;
+          font-size: 9px;
+        }
+
+        .recent {
+          overflow: hidden;
+        }
+
+        .row {
+          min-height: 67px;
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+        }
+
+        .row:last-child {
+          border-bottom: 0;
+        }
+
+        .avatar-small {
+          width: 32px;
+          height: 32px;
+          flex: 0 0 32px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: #aab8ff;
+          background: rgba(79, 103, 255, 0.14);
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .row-info {
+          flex: 1;
+        }
+
+        .row-info b {
+          display: block;
+          font-size: 11px;
+        }
+
+        .row-info small {
+          display: block;
+          margin-top: 3px;
+          color: #66738a;
+          font-size: 9px;
+        }
+
+        .pill {
+          padding: 5px 8px;
+          border-radius: 20px;
+          color: #59cda9;
+          background: rgba(70, 211, 165, 0.07);
+          font-size: 8px;
+        }
+
+        .module {
+          min-height: 420px;
+          display: grid;
+          place-items: center;
+        }
+
+        .module-box {
+          width: min(620px, 100%);
+          padding: 55px 35px;
+          text-align: center;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+          background: rgba(10, 14, 24, 0.7);
+        }
+
+        .module-icon {
+          font-size: 45px;
+          color: #6f8cff;
+          text-shadow: 0 0 30px rgba(91, 121, 255, 0.4);
+        }
+
+        .module-box h2 {
+          margin: 14px 0 8px;
+        }
+
+        .module-box p {
+          margin: 0 auto 20px;
+          max-width: 500px;
+          color: #748198;
+          font-size: 12px;
+          line-height: 1.7;
+        }
+
+        @media (max-width: 1000px) {
+          .sidebar {
+            width: 210px;
+          }
+
+          .page,
+          .topbar {
+            padding-left: 25px;
+            padding-right: 25px;
+          }
+
+          .stats {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .grid2 {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 700px) {
+          .sidebar {
+            width: 72px;
+            padding: 18px 9px;
+          }
+
+          .brand {
+            justify-content: center;
+            padding: 4px 0 25px;
+          }
+
+          .brand > div:last-child,
+          .workspace,
+          .nav-item span:last-child,
+          .trial,
+          .account > div:last-child {
+            display: none;
+          }
+
+          .nav-item {
+            justify-content: center;
+            padding: 13px 0;
+          }
+
+          .nav-item.active::before {
+            left: -9px;
+          }
+
+          .account {
+            justify-content: center;
+          }
+
+          .topbar {
+            padding: 20px;
+          }
+
+          .page {
+            padding: 20px;
+          }
+
+          .hero {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 20px;
+          }
+
+          .stats {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+      `}</style>
+    </main>
+  );
+}
+
+function Dashboard({ agentOn, setAgentOn }) {
+  return (
+    <div className="page">
+      <section className="hero">
+        <div>
+          <span className="eyebrow">AI AGENT SYSTEM</span>
+          <h2>Meet your AI workforce.</h2>
+          <p>
+            Automate customer conversations across WhatsApp, voice and more.
+          </p>
+        </div>
+
+        <button
+          className="primary"
+          onClick={() => setAgentOn(!agentOn)}
+        >
+          {agentOn ? "● Agent is active" : "○ Activate agent"}
+        </button>
+      </section>
+
+      <section className="stats">
+        <div className="card stat">
+          <small>Active conversations</small>
+          <strong>24</strong>
+          <span>+12%</span>
+        </div>
+
+        <div className="card stat">
+          <small>Messages</small>
+          <strong>1,284</strong>
+          <span>+18%</span>
+        </div>
+
+        <div className="card stat">
+          <small>Voice calls</small>
+          <strong>87</strong>
+          <span>+9%</span>
+        </div>
+
+        <div className="card stat">
+          <small>AI usage</small>
+          <strong>68%</strong>
+          <span>of limit</span>
+        </div>
+      </section>
+
+      <section className="grid2">
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h3>AI Agent</h3>
+              <p>Your primary customer assistant</p>
+            </div>
+
+            <span className={agentOn ? "status" : "status off"}>
+              {agentOn ? "LIVE" : "OFFLINE"}
+            </span>
+          </div>
+
+          <div className="agent">
+            <div className="agent-icon">✦</div>
+
+            <div>
+              <b>Wassal Assistant</b>
+              <p>Arabic & English · Friendly · Professional</p>
+            </div>
+
+            <button className="secondary">Configure</button>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h3>Channels</h3>
+              <p>Connect your customer touchpoints</p>
+            </div>
+          </div>
+
+          <div className="channels">
+            <div className="channel">
+              <b>◉ WhatsApp</b>
+              <span>Not connected</span>
+            </div>
+
+            <div className="channel">
+              <b>◖ Voice</b>
+              <span>Not connected</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="card recent">
+        <div className="card-head">
+          <div>
+            <h3>Recent conversations</h3>
+            <p>Latest AI activity</p>
+          </div>
+
+          <button className="secondary">View all</button>
+        </div>
+
+        <Conversation
+          letter="A"
+          name="Ahmad — Appointment inquiry"
+          time="1 min ago · AI handled"
+        />
+
+        <Conversation
+          letter="S"
+          name="Sara — Product question"
+          time="3 min ago · AI handled"
+        />
+
+        <Conversation
+          letter="O"
+          name="Omar — Support request"
+          time="7 min ago · AI handled"
+        />
+      </section>
+    </div>
+  );
+}
+
+function Conversation({ letter, name, time }) {
+  return (
+    <div className="row">
+      <div className="avatar-small">{letter}</div>
+
+      <div className="row-info">
+        <b>{name}</b>
+        <small>{time}</small>
+      </div>
+
+      <span className="pill">Resolved</span>
+    </div>
+  );
+}
+
+
+function ConversationsPage() {
+  const conversations = [
+    {
+      id: 1,
+      name: "Ahmad",
+      initial: "A",
+      subject: "Appointment inquiry",
+      message: "Hello, I would like to book an appointment.",
+      time: "1 min ago",
+      channel: "WhatsApp",
+      status: "Open",
+      unread: 2,
+    },
+    {
+      id: 2,
+      name: "Sara",
+      initial: "S",
+      subject: "Product question",
+      message: "Can you tell me more about this product?",
+      time: "3 min ago",
+      channel: "WhatsApp",
+      status: "Open",
+      unread: 1,
+    },
+    {
+      id: 3,
+      name: "Omar",
+      initial: "O",
+      subject: "Support request",
+      message: "I need help with my order.",
+      time: "7 min ago",
+      channel: "Voice",
+      status: "Resolved",
+      unread: 0,
+    },
+    {
+      id: 4,
+      name: "Lina",
+      initial: "L",
+      subject: "Order status",
+      message: "Where is my order?",
+      time: "18 min ago",
+      channel: "WhatsApp",
+      status: "Open",
+      unread: 3,
+    },
+    {
+      id: 5,
+      name: "Karim",
+      initial: "K",
+      subject: "Pricing inquiry",
+      message: "What are your current prices?",
+      time: "32 min ago",
+      channel: "Voice",
+      status: "Resolved",
+      unread: 0,
+    },
+  ];
+
+  const [selectedId, setSelectedId] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+
+  const filtered = conversations.filter((item) => {
+    const matchesSearch =
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.subject.toLowerCase().includes(search.toLowerCase()) ||
+      item.message.toLowerCase().includes(search.toLowerCase());
+
+    const matchesFilter =
+      filter === "All" ||
+      (filter === "Open" && item.status === "Open") ||
+      (filter === "Resolved" && item.status === "Resolved");
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const selected =
+    conversations.find((item) => item.id === selectedId) ||
+    filtered[0] ||
+    conversations[0];
+
+  return (
+    <div className="page conversations-page">
+      <div className="conversation-toolbar">
+        <div>
+          <div className="eyebrow">CUSTOMER COMMUNICATIONS</div>
+          <h2>Conversations</h2>
+          <p>Manage and review your customer conversations.</p>
+        </div>
+
+        <button className="primary">
+          + New conversation
+        </button>
+      </div>
+
+      <div className="conversation-layout">
+        <section className="card conversation-list">
+          <div className="conversation-list-head">
+            <div className="conversation-search">
+              <span>⌕</span>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search conversations..."
+              />
+            </div>
+
+            <div className="conversation-filters">
+              {["All", "Open", "Resolved"].map((item) => (
+                <button
+                  key={item}
+                  className={filter === item ? "filter active" : "filter"}
+                  onClick={() => setFilter(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="conversation-count">
+            <span>{filtered.length} conversations</span>
+            <span>Latest activity</span>
+          </div>
+
+          <div className="conversation-items">
+            {filtered.map((item) => (
+              <button
+                key={item.id}
+                className={
+                  selectedId === item.id
+                    ? "conversation-item selected"
+                    : "conversation-item"
+                }
+                onClick={() => setSelectedId(item.id)}
+              >
+                <div className="conversation-avatar">
+                  {item.initial}
+                </div>
+
+                <div className="conversation-main">
+                  <div className="conversation-name-row">
+                    <strong>{item.name}</strong>
+                    <small>{item.time}</small>
+                  </div>
+
+                  <b>{item.subject}</b>
+
+                  <p>{item.message}</p>
+
+                  <div className="conversation-meta">
+                    <span
+                      className={
+                        item.channel === "WhatsApp"
+                          ? "channel-tag whatsapp"
+                          : "channel-tag voice"
+                      }
+                    >
+                      {item.channel === "WhatsApp" ? "◉" : "◖"}{" "}
+                      {item.channel}
+                    </span>
+
+                    <span
+                      className={
+                        item.status === "Open"
+                          ? "mini-status open"
+                          : "mini-status resolved"
+                      }
+                    >
+                      {item.status}
+                    </span>
+
+                    {item.unread > 0 && (
+                      <span className="unread">
+                        {item.unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+
+            {filtered.length === 0 && (
+              <div className="empty-conversations">
+                <div>⌕</div>
+                <strong>No conversations found</strong>
+                <p>Try another search or filter.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="card conversation-detail">
+          <div className="detail-head">
+            <div className="detail-customer">
+              <div className="detail-avatar">
+                {selected.initial}
+              </div>
+
+              <div>
+                <strong>{selected.name}</strong>
+                <span>{selected.subject}</span>
+              </div>
+            </div>
+
+            <div className="detail-actions">
+              <button className="icon-action">⌕</button>
+              <button className="icon-action">⋯</button>
+            </div>
+          </div>
+
+          <div className="detail-info">
+            <span>
+              {selected.channel === "WhatsApp" ? "◉" : "◖"}{" "}
+              {selected.channel}
+            </span>
+            <span>•</span>
+            <span>{selected.status}</span>
+          </div>
+
+          <div className="messages">
+            <div className="message-date">TODAY</div>
+
+            <div className="message customer">
+              <div className="message-avatar">
+                {selected.initial}
+              </div>
+
+              <div>
+                <span className="message-label">
+                  {selected.name}
+                </span>
+                <div className="bubble">
+                  {selected.message}
+                </div>
+                <small>09:41</small>
+              </div>
+            </div>
+
+            <div className="message agent-message">
+              <div>
+                <span className="message-label">Wassal Assistant</span>
+                <div className="bubble">
+                  Hello {selected.name}! 👋 Thanks for contacting us.
+                  How can I help you today?
+                </div>
+                <small>09:42 · AI handled</small>
+              </div>
+            </div>
+          </div>
+
+          <div className="composer">
+            <input
+              placeholder="Write a message..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                  e.currentTarget.value = "";
+                }
+              }}
+            />
+            <button className="composer-action">＋</button>
+            <button className="send-button">➤</button>
+          </div>
+        </section>
+      </div>
+
+      <style jsx>{`
+        .conversations-page {
+          padding-top: 28px;
+        }
+
+        .conversation-toolbar {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 20px;
+          margin-bottom: 20px;
+        }
+
+        .conversation-toolbar h2 {
+          margin: 7px 0 5px;
+          font-size: 25px;
+          letter-spacing: -0.7px;
+        }
+
+        .conversation-toolbar p {
+          margin: 0;
+          color: #748198;
+          font-size: 12px;
+        }
+
+        .conversation-layout {
+          min-height: 650px;
+          display: grid;
+          grid-template-columns: minmax(330px, 0.85fr) minmax(420px, 1.15fr);
+          gap: 14px;
+        }
+
+        .conversation-list {
+          overflow: hidden;
+        }
+
+        .conversation-list-head {
+          padding: 17px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .conversation-search {
+          height: 39px;
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 0 12px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 9px;
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .conversation-search span {
+          color: #68768d;
+          font-size: 16px;
+        }
+
+        .conversation-search input {
+          width: 100%;
+          border: 0;
+          outline: 0;
+          color: #e8edf7;
+          background: transparent;
+          font-size: 11px;
+        }
+
+        .conversation-search input::placeholder {
+          color: #5e6b81;
+        }
+
+        .conversation-filters {
+          display: flex;
+          gap: 6px;
+          margin-top: 12px;
+        }
+
+        .filter {
+          border: 1px solid transparent;
+          padding: 7px 11px;
+          border-radius: 7px;
+          color: #738198;
+          background: transparent;
+          font-size: 10px;
+          cursor: pointer;
+        }
+
+        .filter.active {
+          color: #dce4ff;
+          border-color: rgba(91, 121, 255, 0.2);
+          background: rgba(82, 109, 255, 0.12);
+        }
+
+        .conversation-count {
+          display: flex;
+          justify-content: space-between;
+          padding: 13px 17px;
+          color: #59677e;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.8px;
+        }
+
+        .conversation-items {
+          max-height: 535px;
+          overflow-y: auto;
+        }
+
+        .conversation-item {
+          width: 100%;
+          min-height: 104px;
+          padding: 14px 17px;
+          display: flex;
+          gap: 11px;
+          border: 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.045);
+          color: #dce3ef;
+          background: transparent;
+          text-align: left;
+          cursor: pointer;
+          transition: 0.18s ease;
+        }
+
+        .conversation-item:hover {
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .conversation-item.selected {
+          background: linear-gradient(
+            90deg,
+            rgba(75, 105, 255, 0.14),
+            rgba(75, 105, 255, 0.025)
+          );
+          box-shadow: inset 2px 0 #607dff;
+        }
+
+        .conversation-avatar,
+        .detail-avatar {
+          width: 39px;
+          height: 39px;
+          flex: 0 0 39px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: #b3c0ff;
+          background: rgba(82, 109, 255, 0.15);
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .conversation-main {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .conversation-name-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .conversation-name-row strong {
+          font-size: 12px;
+        }
+
+        .conversation-name-row small {
+          flex: 0 0 auto;
+          color: #59677d;
+          font-size: 8px;
+        }
+
+        .conversation-main > b {
+          display: block;
+          margin-top: 4px;
+          font-size: 10px;
+        }
+
+        .conversation-main > p {
+          margin: 4px 0 8px;
+          overflow: hidden;
+          color: #68768d;
+          font-size: 9px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+
+        .conversation-meta {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+        }
+
+        .channel-tag,
+        .mini-status,
+        .unread {
+          padding: 4px 7px;
+          border-radius: 20px;
+          font-size: 8px;
+        }
+
+        .channel-tag.whatsapp {
+          color: #55d8ae;
+          background: rgba(66, 213, 167, 0.07);
+        }
+
+        .channel-tag.voice {
+          color: #9db0ff;
+          background: rgba(82, 109, 255, 0.1);
+        }
+
+        .mini-status.open {
+          color: #8fa5ff;
+          background: rgba(82, 109, 255, 0.08);
+        }
+
+        .mini-status.resolved {
+          color: #62cbaa;
+          background: rgba(70, 211, 165, 0.06);
+        }
+
+        .unread {
+          min-width: 17px;
+          text-align: center;
+          color: white;
+          background: #506fff;
+        }
+
+        .empty-conversations {
+          padding: 70px 20px;
+          text-align: center;
+        }
+
+        .empty-conversations div {
+          font-size: 32px;
+          color: #657cff;
+        }
+
+        .empty-conversations strong {
+          display: block;
+          margin-top: 10px;
+          font-size: 12px;
+        }
+
+        .empty-conversations p {
+          color: #69768d;
+          font-size: 10px;
+        }
+
+        .conversation-detail {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        .detail-head {
+          min-height: 76px;
+          padding: 16px 19px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .detail-customer {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+        }
+
+        .detail-customer strong {
+          display: block;
+          font-size: 13px;
+        }
+
+        .detail-customer span {
+          display: block;
+          margin-top: 3px;
+          color: #68768d;
+          font-size: 9px;
+        }
+
+        .detail-actions {
+          display: flex;
+          gap: 6px;
+        }
+
+        .icon-action {
+          width: 31px;
+          height: 31px;
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          border-radius: 8px;
+          color: #8794aa;
+          background: rgba(255, 255, 255, 0.025);
+          cursor: pointer;
+        }
+
+        .detail-info {
+          padding: 10px 20px;
+          display: flex;
+          gap: 8px;
+          color: #66748b;
+          font-size: 9px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+        }
+
+        .messages {
+          flex: 1;
+          padding: 25px 24px;
+          overflow-y: auto;
+        }
+
+        .message-date {
+          margin-bottom: 24px;
+          text-align: center;
+          color: #4f5c72;
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+        }
+
+        .message {
+          display: flex;
+          margin-bottom: 24px;
+        }
+
+        .message.customer {
+          align-items: flex-start;
+          gap: 9px;
+        }
+
+        .message.agent-message {
+          justify-content: flex-end;
+        }
+
+        .message-avatar {
+          width: 28px;
+          height: 28px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: #aebcff;
+          background: rgba(82, 109, 255, 0.13);
+          font-size: 9px;
+          font-weight: 800;
+        }
+
+        .message-label {
+          display: block;
+          margin-bottom: 5px;
+          color: #69778d;
+          font-size: 8px;
+        }
+
+        .bubble {
+          max-width: 360px;
+          padding: 11px 13px;
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          border-radius: 11px;
+          color: #dce3ee;
+          background: rgba(255, 255, 255, 0.035);
+          font-size: 10px;
+          line-height: 1.6;
+        }
+
+        .agent-message .bubble {
+          border-color: rgba(82, 109, 255, 0.16);
+          background: rgba(67, 91, 185, 0.12);
+        }
+
+        .message small {
+          display: block;
+          margin-top: 5px;
+          color: #4e5c72;
+          font-size: 7px;
+        }
+
+        .agent-message small {
+          text-align: right;
+        }
+
+        .composer {
+          padding: 13px;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(5, 7, 13, 0.3);
+        }
+
+        .composer input {
+          flex: 1;
+          min-width: 0;
+          height: 39px;
+          padding: 0 12px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 9px;
+          outline: 0;
+          color: #e8edf7;
+          background: rgba(255, 255, 255, 0.025);
+          font-size: 10px;
+        }
+
+        .composer input::placeholder {
+          color: #59677d;
+        }
+
+        .composer-action,
+        .send-button {
+          width: 39px;
+          height: 39px;
+          border-radius: 9px;
+          cursor: pointer;
+        }
+
+        .composer-action {
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          color: #8290a8;
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .send-button {
+          border: 0;
+          color: white;
+          background: linear-gradient(135deg, #536fff, #328ddf);
+        }
+
+        @media (max-width: 900px) {
+          .conversation-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .conversation-detail {
+            min-height: 560px;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .conversation-toolbar {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .conversation-toolbar .primary {
+            width: 100%;
+          }
+
+          .conversation-layout {
+            gap: 10px;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+
+function ContactsPage() {
+  const defaultContacts = [
+    {
+      id: 1,
+      name: "Ahmad Hassan",
+      phone: "+96170123456",
+      email: "ahmad@example.com",
+      company: "Hassan Trading",
+      conversations: 12,
+      lastContact: "1 min ago",
+      channel: "WhatsApp",
+      status: "Active",
+    },
+    {
+      id: 2,
+      name: "Sara Khalil",
+      phone: "+96171234567",
+      email: "sara@example.com",
+      company: "Khalil Design",
+      conversations: 8,
+      lastContact: "3 min ago",
+      channel: "WhatsApp",
+      status: "Active",
+    },
+    {
+      id: 3,
+      name: "Omar Nasser",
+      phone: "+96176345678",
+      email: "omar@example.com",
+      company: "Nasser Group",
+      conversations: 6,
+      lastContact: "7 min ago",
+      channel: "Voice",
+      status: "Active",
+    },
+    {
+      id: 4,
+      name: "Lina Haddad",
+      phone: "+96178456789",
+      email: "lina@example.com",
+      company: "Haddad Store",
+      conversations: 15,
+      lastContact: "18 min ago",
+      channel: "WhatsApp",
+      status: "Active",
+    },
+    {
+      id: 5,
+      name: "Karim Saleh",
+      phone: "+96179567890",
+      email: "karim@example.com",
+      company: "Saleh Services",
+      conversations: 4,
+      lastContact: "32 min ago",
+      channel: "Voice",
+      status: "Active",
+    },
+  ];
+
+  const [contacts, setContacts] = useState(() => {
+    try {
+      const saved = localStorage.getItem("wassal_contacts");
+      return saved ? JSON.parse(saved) : defaultContacts;
+    } catch {
+      return defaultContacts;
+    }
+  });
+
+  const [selectedId, setSelectedId] = useState(1);
+  const [search, setSearch] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [newContact, setNewContact] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    company: "",
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("wassal_contacts", JSON.stringify(contacts));
+    } catch {}
+  }, [contacts]);
+
+  const filtered = contacts.filter((contact) => {
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+
+    return (
+      contact.name.toLowerCase().includes(q) ||
+      contact.phone.toLowerCase().includes(q) ||
+      contact.email.toLowerCase().includes(q) ||
+      contact.company.toLowerCase().includes(q)
+    );
+  });
+
+  const selected =
+    contacts.find((contact) => contact.id === selectedId) ||
+    filtered[0] ||
+    contacts[0];
+
+  function addContact() {
+    const name = newContact.name.trim();
+    const phone = newContact.phone.trim();
+
+    if (!name || !phone) {
+      alert("Please enter the contact name and phone number.");
+      return;
+    }
+
+    const contact = {
+      id: Date.now(),
+      name,
+      phone,
+      email: newContact.email.trim() || "—",
+      company: newContact.company.trim() || "—",
+      conversations: 0,
+      lastContact: "Just now",
+      channel: "WhatsApp",
+      status: "Active",
+    };
+
+    setContacts((prev) => [contact, ...prev]);
+    setSelectedId(contact.id);
+    setNewContact({
+      name: "",
+      phone: "",
+      email: "",
+      company: "",
+    });
+    setShowAdd(false);
+  }
+
+  function openWhatsApp(phone) {
+    const clean = String(phone || "").replace(/\D/g, "");
+
+    if (!clean) {
+      alert("This contact has no valid phone number.");
+      return;
+    }
+
+    window.open(
+      `https://wa.me/${clean}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  function callContact(phone) {
+    const clean = String(phone || "").replace(/[^\d+]/g, "");
+
+    if (!clean) {
+      alert("This contact has no valid phone number.");
+      return;
+    }
+
+    window.location.href = `tel:${clean}`;
+  }
+
+  if (!selected) {
+    return (
+      <div className="page contacts-page">
+        <div className="contacts-toolbar">
+          <div>
+            <div className="eyebrow">CUSTOMER DIRECTORY</div>
+            <h2>Contacts</h2>
+            <p>Manage your customers and their communication details.</p>
+          </div>
+          <button className="primary" onClick={() => setShowAdd(true)}>
+            + Add contact
+          </button>
+        </div>
+
+        <div className="card empty-contacts-state">
+          <strong>No contacts yet</strong>
+          <p>Add your first customer to get started.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page contacts-page">
+      <div className="contacts-toolbar">
+        <div>
+          <div className="eyebrow">CUSTOMER DIRECTORY</div>
+          <h2>Contacts</h2>
+          <p>Manage your customers and their communication details.</p>
+        </div>
+
+        <button
+          className="primary"
+          onClick={() => setShowAdd((value) => !value)}
+        >
+          + Add contact
+        </button>
+      </div>
+
+      {showAdd && (
+        <div className="card add-contact-panel">
+          <div className="add-contact-title">
+            <strong>Add a new contact</strong>
+            <span>Create and save a customer inside WASSAL AI.</span>
+          </div>
+
+          <div className="add-contact-grid">
+            <input
+              value={newContact.name}
+              onChange={(e) =>
+                setNewContact((v) => ({ ...v, name: e.target.value }))
+              }
+              placeholder="Full name *"
+            />
+
+            <input
+              value={newContact.phone}
+              onChange={(e) =>
+                setNewContact((v) => ({ ...v, phone: e.target.value }))
+              }
+              placeholder="Phone number *"
+              type="tel"
+            />
+
+            <input
+              value={newContact.email}
+              onChange={(e) =>
+                setNewContact((v) => ({ ...v, email: e.target.value }))
+              }
+              placeholder="Email"
+              type="email"
+            />
+
+            <input
+              value={newContact.company}
+              onChange={(e) =>
+                setNewContact((v) => ({ ...v, company: e.target.value }))
+              }
+              placeholder="Company"
+            />
+          </div>
+
+          <div className="add-contact-buttons">
+            <button className="primary" onClick={addContact}>
+              Save contact
+            </button>
+
+            <button
+              className="secondary"
+              onClick={() => {
+                setShowAdd(false);
+                setNewContact({
+                  name: "",
+                  phone: "",
+                  email: "",
+                  company: "",
+                });
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="contacts-layout">
+        <section className="card contacts-list">
+          <div className="contacts-list-head">
+            <div className="conversation-search">
+              <span>⌕</span>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search contacts..."
+              />
+            </div>
+
+            <div className="contacts-count">
+              {filtered.length} contacts
+            </div>
+          </div>
+
+          <div className="contact-items">
+            {filtered.map((contact) => (
+              <button
+                key={contact.id}
+                className={
+                  selectedId === contact.id
+                    ? "contact-item selected"
+                    : "contact-item"
+                }
+                onClick={() => setSelectedId(contact.id)}
+              >
+                <div className="contact-avatar">
+                  {(contact.name || "?").charAt(0).toUpperCase()}
+                </div>
+
+                <div className="contact-main">
+                  <div className="contact-name-row">
+                    <strong>{contact.name}</strong>
+                    <span>{contact.lastContact}</span>
+                  </div>
+
+                  <p>{contact.phone}</p>
+
+                  <div className="contact-meta">
+                    <span
+                      className={
+                        contact.channel === "WhatsApp"
+                          ? "channel-tag whatsapp"
+                          : "channel-tag voice"
+                      }
+                    >
+                      {contact.channel === "WhatsApp" ? "◉" : "◖"}{" "}
+                      {contact.channel}
+                    </span>
+
+                    <span className="conversation-number">
+                      {contact.conversations} conversations
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))}
+
+            {filtered.length === 0 && (
+              <div className="empty-conversations">
+                <div>⌕</div>
+                <strong>No contacts found</strong>
+                <p>Try another name, phone number or email.</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="card contact-detail">
+          <div className="contact-detail-head">
+            <div className="large-contact-avatar">
+              {(selected.name || "?").charAt(0).toUpperCase()}
+            </div>
+
+            <div className="contact-title">
+              <strong>{selected.name}</strong>
+              <span>
+                <i /> {selected.status}
+              </span>
+            </div>
+
+            <button className="icon-action">⋯</button>
+          </div>
+
+          <div className="contact-stats">
+            <div>
+              <strong>{selected.conversations}</strong>
+              <span>Conversations</span>
+            </div>
+
+            <div>
+              <strong>{selected.channel}</strong>
+              <span>Preferred channel</span>
+            </div>
+
+            <div>
+              <strong>AI</strong>
+              <span>Handled by</span>
+            </div>
+          </div>
+
+          <div className="contact-information">
+            <div className="section-title">
+              CONTACT INFORMATION
+            </div>
+
+            <div className="info-row">
+              <span className="info-icon">☎</span>
+              <div>
+                <small>Phone</small>
+                <strong>{selected.phone}</strong>
+              </div>
+            </div>
+
+            <div className="info-row">
+              <span className="info-icon">✉</span>
+              <div>
+                <small>Email</small>
+                <strong>{selected.email}</strong>
+              </div>
+            </div>
+
+            <div className="info-row">
+              <span className="info-icon">▣</span>
+              <div>
+                <small>Company</small>
+                <strong>{selected.company}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="contact-actions">
+            <button
+              className="primary contact-action"
+              onClick={() => openWhatsApp(selected.phone)}
+            >
+              ◉ Open WhatsApp
+            </button>
+
+            <button
+              className="secondary contact-action"
+              onClick={() => callContact(selected.phone)}
+            >
+              ◖ Start call
+            </button>
+          </div>
+
+          <div className="contact-footer">
+            Last contact: {selected.lastContact}
+          </div>
+        </section>
+      </div>
+
+      <style jsx>{`
+        .contacts-page {
+          padding-top: 28px;
+        }
+
+        .contacts-toolbar {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 20px;
+          margin-bottom: 22px;
+        }
+
+        .contacts-toolbar h2 {
+          margin: 5px 0 4px;
+        }
+
+        .contacts-toolbar p {
+          margin: 0;
+          opacity: 0.62;
+        }
+
+        .add-contact-panel {
+          padding: 22px;
+          margin-bottom: 20px;
+        }
+
+        .add-contact-title {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          margin-bottom: 18px;
+        }
+
+        .add-contact-title span {
+          opacity: 0.62;
+          font-size: 13px;
+        }
+
+        .add-contact-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .add-contact-grid input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 13px 14px;
+          border-radius: 12px;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.035);
+          color: inherit;
+          outline: none;
+        }
+
+        .add-contact-grid input:focus {
+          border-color: rgba(255,255,255,0.28);
+        }
+
+        .add-contact-buttons {
+          display: flex;
+          gap: 10px;
+          margin-top: 16px;
+        }
+
+        .contacts-layout {
+          display: grid;
+          grid-template-columns: minmax(300px, 0.9fr) minmax(380px, 1.1fr);
+          gap: 18px;
+        }
+
+        .contacts-list {
+          overflow: hidden;
+        }
+
+        .contacts-list-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 16px;
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .conversation-search {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+          padding: 10px 12px;
+          border-radius: 11px;
+          background: rgba(255,255,255,0.035);
+          border: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .conversation-search input {
+          width: 100%;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: inherit;
+        }
+
+        .contacts-count {
+          font-size: 12px;
+          opacity: 0.55;
+          white-space: nowrap;
+        }
+
+        .contact-items {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .contact-item {
+          width: 100%;
+          display: flex;
+          gap: 12px;
+          text-align: left;
+          padding: 15px 16px;
+          border: 0;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          background: transparent;
+          color: inherit;
+          cursor: pointer;
+        }
+
+        .contact-item:hover,
+        .contact-item.selected {
+          background: rgba(255,255,255,0.045);
+        }
+
+        .contact-avatar,
+        .large-contact-avatar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          border-radius: 50%;
+          font-weight: 700;
+          background: rgba(255,255,255,0.09);
+        }
+
+        .contact-avatar {
+          width: 42px;
+          height: 42px;
+        }
+
+        .large-contact-avatar {
+          width: 54px;
+          height: 54px;
+          font-size: 18px;
+        }
+
+        .contact-main {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .contact-name-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .contact-name-row span {
+          font-size: 11px;
+          opacity: 0.45;
+          white-space: nowrap;
+        }
+
+        .contact-main p {
+          margin: 5px 0 9px;
+          font-size: 13px;
+          opacity: 0.62;
+        }
+
+        .contact-meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .channel-tag,
+        .conversation-number {
+          font-size: 11px;
+          opacity: 0.68;
+        }
+
+        .contact-detail {
+          padding: 22px;
+        }
+
+        .contact-detail-head {
+          display: flex;
+          align-items: center;
+          gap: 13px;
+        }
+
+        .contact-title {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          flex: 1;
+        }
+
+        .contact-title span {
+          font-size: 12px;
+          opacity: 0.58;
+        }
+
+        .contact-title i {
+          display: inline-block;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: currentColor;
+          margin-right: 4px;
+        }
+
+        .icon-action {
+          border: 0;
+          background: transparent;
+          color: inherit;
+          font-size: 20px;
+          cursor: pointer;
+          opacity: 0.6;
+        }
+
+        .contact-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin: 22px 0;
+        }
+
+        .contact-stats div {
+          padding: 14px;
+          border-radius: 13px;
+          background: rgba(255,255,255,0.035);
+          border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .contact-stats strong,
+        .contact-stats span {
+          display: block;
+        }
+
+        .contact-stats strong {
+          font-size: 15px;
+          margin-bottom: 4px;
+        }
+
+        .contact-stats span {
+          font-size: 10px;
+          opacity: 0.52;
+        }
+
+        .contact-information {
+          padding-top: 5px;
+        }
+
+        .section-title {
+          font-size: 10px;
+          letter-spacing: 0.12em;
+          opacity: 0.5;
+          margin-bottom: 15px;
+        }
+
+        .info-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          padding: 12px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.055);
+        }
+
+        .info-icon {
+          width: 34px;
+          height: 34px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.05);
+        }
+
+        .info-row small,
+        .info-row strong {
+          display: block;
+        }
+
+        .info-row small {
+          font-size: 10px;
+          opacity: 0.48;
+          margin-bottom: 3px;
+        }
+
+        .info-row strong {
+          font-size: 13px;
+        }
+
+        .contact-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-top: 22px;
+        }
+
+        .contact-action {
+          min-height: 44px;
+        }
+
+        .contact-footer {
+          margin-top: 17px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255,255,255,0.06);
+          font-size: 11px;
+          opacity: 0.45;
+        }
+
+        .empty-contacts-state {
+          padding: 40px;
+          text-align: center;
+        }
+
+        .empty-contacts-state p {
+          opacity: 0.55;
+        }
+
+        @media (max-width: 900px) {
+          .contacts-layout {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .contacts-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+          }
+
+          .add-contact-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .contact-stats {
+            grid-template-columns: 1fr;
+          }
+
+          .contact-actions {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function ModulePage({ title }) {
+  return (
+    <div className="page">
+      <div className="module">
+        <div className="module-box">
+          <div className="module-icon">✦</div>
+
+          <h2>{title}</h2>
+
+          <p>
+            This module is ready for configuration. WASSAL AI will connect
+            your workflows, agents and customer channels from one place.
+          </p>
+
+          <button className="primary">
+            Configure {title}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
