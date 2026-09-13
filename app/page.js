@@ -7,9 +7,11 @@ const navItems = [
   "Dashboard",
   "AI Agent",
   "WhatsApp",
-  "Voice",
-  "Analytics",
-  "Billing",
+  "Calendar",
+  "Location",
+  "Files",
+  "Web",
+  "Tasks",
   "Settings",
   "Admin",
 ];
@@ -21,6 +23,11 @@ const icons = {
   Contacts: "♙",
   "WhatsApp": "📱",
   WhatsApp: "◉",
+  Calendar: "📅",
+  Location: "📍",
+  Files: "📁",
+  Web: "🌐",
+  Tasks: "📝",
   Voice: "◖",
   Analytics: "◒",
   Billing: "$",
@@ -272,6 +279,8 @@ export default function Home() {
             setAgentOn={setAgentOn}
             setActive={setActive}
           />
+        ) : active === "Conversations" ? (
+          <ConversationsPage />
         ) : active === "WhatsApp" ? (
           <CallChatPage />
         ) : active === "Voice" ? (
@@ -280,6 +289,8 @@ export default function Home() {
           <ProfilePage />
         ) : active === "Settings" ? (
           <SettingsPage />
+        ) : active === "Admin" ? (
+          <AdminPage />
         ) : (
           <ModulePage title={active} />
         )}
@@ -295,7 +306,7 @@ export default function Home() {
           margin: 0;
           padding: 0;
           min-height: 100%;
-          background: #05070d;
+          background: transparent !important;
           color: #f5f7fb;
           font-family:
             Inter,
@@ -369,7 +380,7 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           border-right: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(5, 7, 13, 0.82);
+          background: rgba(5, 7, 13, 0.35);
           backdrop-filter: blur(18px);
         }
 
@@ -562,7 +573,7 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          background: rgba(5, 7, 13, 0.3);
+          background: rgba(5, 7, 13, 0.12);
           backdrop-filter: blur(8px);
         }
 
@@ -1516,7 +1527,9 @@ function Dashboard({ agentOn, setAgentOn, setActive }) {
 
       </section>
 
-      <section className="card recent">
+      
+
+        <section className="card recent">
         <div className="card-head">
           <div>
             <h3>Recent conversations</h3>
@@ -1571,197 +1584,246 @@ function Conversation({ letter, name, time }) {
 
 
 function ConversationsPage() {
-  const defaultConversations = [
-    {
-      id: 1,
-      name: "Ahmad",
-      phone: "+96170123456",
-      initial: "A",
-      subject: "Appointment inquiry",
-      message: "Hello, I would like to book an appointment.",
-      time: "1 min ago",
-      channel: "WhatsApp",
-      status: "Open",
-      unread: 2,
-      messages: [
-        { from: "customer", text: "Hello, I would like to book an appointment.", time: "09:41" },
-        { from: "assistant", text: "Hello Ahmad! 👋 Thanks for contacting us. How can I help you today?", time: "09:41" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Sara",
-      phone: "+96171234567",
-      initial: "S",
-      subject: "Product question",
-      message: "Can you tell me more about this product?",
-      time: "3 min ago",
-      channel: "WhatsApp",
-      status: "Open",
-      unread: 1,
-      messages: [
-        { from: "customer", text: "Can you tell me more about this product?", time: "09:39" },
-      ],
-    },
-    {
-      id: 3,
-      name: "Omar",
-      phone: "+96176345678",
-      initial: "O",
-      subject: "Support request",
-      message: "I need help with my order.",
-      time: "7 min ago",
-      channel: "Voice",
-      status: "Resolved",
-      unread: 0,
-      messages: [
-        { from: "customer", text: "I need help with my order.", time: "09:35" },
-      ],
-    },
-    {
-      id: 4,
-      name: "Lina",
-      phone: "+96178456789",
-      initial: "L",
-      subject: "Order status",
-      message: "Where is my order?",
-      time: "18 min ago",
-      channel: "WhatsApp",
-      status: "Open",
-      unread: 3,
-      messages: [
-        { from: "customer", text: "Where is my order?", time: "09:24" },
-      ],
-    },
-    {
-      id: 5,
-      name: "Karim",
-      phone: "+96179567890",
-      initial: "K",
-      subject: "Pricing inquiry",
-      message: "What are your current prices?",
-      time: "32 min ago",
-      channel: "Voice",
-      status: "Resolved",
-      unread: 0,
-      messages: [
-        { from: "customer", text: "What are your current prices?", time: "09:10" },
-      ],
-    },
-  ];
-
-  const [conversations, setConversations] = useState(() => {
-    if (typeof window === "undefined") return defaultConversations;
-    try {
-      const saved = localStorage.getItem("wassal_conversations");
-      const parsed = saved ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) && parsed.length ? parsed : defaultConversations;
-    } catch {
-      return defaultConversations;
-    }
-  });
-
-  const [selectedId, setSelectedId] = useState(1);
+  const [conversations, setConversations] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState("");
   const [showNew, setShowNew] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   const [newForm, setNewForm] = useState({
     name: "",
     phone: "",
     subject: "",
-    channel: "WhatsApp",
+    channel: "web",
     message: "",
   });
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(
-          "wassal_conversations",
-          JSON.stringify(conversations)
-        );
-      } catch (error) {
-        console.warn("Could not save conversations:", error);
+  async function loadConversations() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const params = new URLSearchParams();
+
+      if (filter !== "all") {
+        params.set("status", filter);
       }
+
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+
+      const response = await fetch(
+        "/api/conversations?" + params.toString(),
+        { cache: "no-store" }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Failed to load conversations");
+      }
+
+      setConversations(data.conversations || []);
+
+      if (data.conversations?.length) {
+        const exists = data.conversations.some(
+          (item) => item.id === selectedId
+        );
+
+        if (!selectedId || !exists) {
+          setSelectedId(data.conversations[0].id);
+        }
+      } else {
+        setSelectedId(null);
+        setSelected(null);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to load conversations");
+    } finally {
+      setLoading(false);
     }
-  }, [conversations]);
-
-  const filtered = conversations.filter((item) => {
-    const q = search.toLowerCase().trim();
-
-    const matchesSearch =
-      !q ||
-      String(item.name || "").toLowerCase().includes(q) ||
-      String(item.phone || "").toLowerCase().includes(q) ||
-      String(item.subject || "").toLowerCase().includes(q) ||
-      String(item.message || "").toLowerCase().includes(q);
-
-    const matchesFilter =
-      filter === "All" ||
-      (filter === "Open" && item.status === "Open") ||
-      (filter === "Resolved" && item.status === "Resolved");
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const selected =
-    conversations.find((item) => item.id === selectedId) ||
-    filtered[0] ||
-    conversations[0] ||
-    null;
-
-  function sendMessage() {
-    const text = message.trim();
-
-    if (!text || !selected) return;
-
-    const now = new Date();
-    const time = now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    const updated = conversations.map((item) => {
-      if (item.id !== selected.id) return item;
-
-      const oldMessages = Array.isArray(item.messages)
-        ? item.messages
-        : [];
-
-      return {
-        ...item,
-        message: text,
-        time: "Just now",
-        unread: 0,
-        status: "Open",
-        messages: [
-          ...oldMessages,
-          { from: "assistant", text, time },
-        ],
-      };
-    });
-
-    setConversations(updated);
-    setMessage("");
   }
 
-  function createConversation() {
+  async function loadConversation(id) {
+    if (!id) return;
+
+    try {
+      const response = await fetch(
+        "/api/conversations/" + encodeURIComponent(id),
+        { cache: "no-store" }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Conversation not found");
+      }
+
+      setSelected(data.conversation);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to load conversation");
+    }
+  }
+
+  useEffect(() => {
+    loadConversations();
+  }, [filter, search]);
+
+  useEffect(() => {
+    if (selectedId) {
+      loadConversation(selectedId);
+    }
+  }, [selectedId]);
+
+  async function sendMessage() {
+    const text = message.trim();
+
+    if (!text || !selected || sending) return;
+
+    try {
+      setSending(true);
+
+      const response = await fetch(
+        "/api/conversations/" +
+          encodeURIComponent(selected.id) +
+          "/messages",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sender: "human",
+            text,
+            type: "text",
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setSelected(data.conversation);
+      setMessage("");
+
+      await loadConversations();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function changeStatus() {
+    if (!selected) return;
+
+    const nextStatus =
+      selected.status === "closed" ? "open" : "closed";
+
+    try {
+      const response = await fetch(
+        "/api/conversations/" +
+          encodeURIComponent(selected.id),
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: nextStatus,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Failed to update status");
+      }
+
+      setSelected(data.conversation);
+      await loadConversations();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to update status");
+    }
+  }
+
+  async function markRead() {
+    if (!selected || !selected.unread) return;
+
+    try {
+      const response = await fetch(
+        "/api/conversations/" +
+          encodeURIComponent(selected.id),
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            markRead: true,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.ok) {
+        setSelected(data.conversation);
+        await loadConversations();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    if (selected) {
+      markRead();
+    }
+  }, [selectedId]);
+
+  async function createConversation() {
     const name = newForm.name.trim();
     let phone = newForm.phone.trim();
+
     phone = phone.replace(/[\s().-]/g, "");
-    if (phone.startsWith("00")) phone = "+" + phone.slice(2);
-    if (phone.startsWith("03") || phone.startsWith("70") || phone.startsWith("71") || phone.startsWith("76") || phone.startsWith("78") || phone.startsWith("79") || phone.startsWith("81")) {
+
+    if (phone.startsWith("00")) {
+      phone = "+" + phone.slice(2);
+    }
+
+    if (
+      phone.startsWith("03") ||
+      phone.startsWith("70") ||
+      phone.startsWith("71") ||
+      phone.startsWith("76") ||
+      phone.startsWith("78") ||
+      phone.startsWith("79") ||
+      phone.startsWith("81")
+    ) {
       phone = "+961" + phone;
     } else if (/^3\d{7}$/.test(phone)) {
       phone = "+961" + phone;
-    } else if (/^7\d{7}$/.test(phone) || /^8\d{7}$/.test(phone)) {
+    } else if (
+      /^7\d{7}$/.test(phone) ||
+      /^8\d{7}$/.test(phone)
+    ) {
       phone = "+961" + phone;
     }
-
-    const subject = newForm.subject.trim() || "New conversation";
-    const firstMessage = newForm.message.trim();
 
     if (!name) {
       alert("Please enter the customer name.");
@@ -1773,45 +1835,67 @@ function ConversationsPage() {
       return;
     }
 
-    const id = Date.now();
-    const initial = name.charAt(0).toUpperCase();
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer: {
+            name,
+            phone,
+          },
+          channel: newForm.channel,
+        }),
+      });
 
-    const newConversation = {
-      id,
-      name,
-      phone,
-      initial,
-      subject,
-      message: firstMessage || "New conversation",
-      time: "Just now",
-      channel: newForm.channel,
-      status: "Open",
-      unread: 0,
-      messages: firstMessage
-        ? [
-            {
-              from: "assistant",
-              text: firstMessage,
-              time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error || "Failed to create conversation"
+        );
+      }
+
+      const created = data.conversation;
+
+      if (newForm.message.trim()) {
+        await fetch(
+          "/api/conversations/" +
+            encodeURIComponent(created.id) +
+            "/messages",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          ]
-        : [],
-    };
+            body: JSON.stringify({
+              sender: "human",
+              text: newForm.message.trim(),
+              type: "text",
+            }),
+          }
+        );
+      }
 
-    setConversations((old) => [newConversation, ...old]);
-    setSelectedId(id);
-    setShowNew(false);
+      setShowNew(false);
 
-    setNewForm({
-      name: "",
-      phone: "",
-      subject: "",
-      channel: "WhatsApp",
-      message: "",
-    });
+      setNewForm({
+        name: "",
+        phone: "",
+        subject: "",
+        channel: "web",
+        message: "",
+      });
+
+      setSelectedId(created.id);
+
+      await loadConversations();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to create conversation");
+    }
   }
 
   function openWhatsApp(phone) {
@@ -1825,19 +1909,44 @@ function ConversationsPage() {
     window.location.href = "https://wa.me/" + number;
   }
 
-  function toggleStatus() {
-    if (!selected) return;
+  function formatTime(value) {
+    if (!value) return "";
 
-    setConversations((old) =>
-      old.map((item) =>
-        item.id === selected.id
-          ? {
-              ...item,
-              status: item.status === "Open" ? "Resolved" : "Open",
-            }
-          : item
-      )
-    );
+    try {
+      return new Date(value).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  function channelLabel(channel) {
+    if (channel === "whatsapp") return "WhatsApp";
+    if (channel === "telegram") return "Telegram";
+    if (channel === "messenger") return "Messenger";
+    if (channel === "voice") return "Voice";
+    return "Web Chat";
+  }
+
+  function statusLabel(status) {
+    if (status === "new") return "New";
+    if (status === "pending") return "Pending";
+    if (status === "human") return "Human";
+    if (status === "closed") return "Closed";
+    return "Open";
+  }
+
+  function initials(customer) {
+    const name = customer?.name || "C";
+
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("");
   }
 
   return (
@@ -1846,7 +1955,9 @@ function ConversationsPage() {
         <div>
           <div className="eyebrow">CUSTOMER COMMUNICATIONS</div>
           <h2>Conversations</h2>
-          <p>Manage and review your customer conversations.</p>
+          <p>
+            Manage and review your customer conversations.
+          </p>
         </div>
 
         <button
@@ -1857,17 +1968,35 @@ function ConversationsPage() {
         </button>
       </div>
 
+      {error && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: "10px 14px",
+            borderRadius: 10,
+            background: "rgba(220,38,38,.10)",
+            color: "#dc2626",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <div className="conversation-layout">
         <section className="card conversation-list">
           <div className="conversation-list-head">
             <div className="conversation-search">
               <span>⌕</span>
+
               <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
                 placeholder="Search conversations..."
               />
+
               {search && (
                 <button
                   type="button"
@@ -1880,90 +2009,123 @@ function ConversationsPage() {
             </div>
 
             <div className="conversation-filters">
-              {["All", "Open", "Resolved"].map((item) => (
+              {[
+                ["all", "All"],
+                ["new", "New"],
+                ["open", "Open"],
+                ["pending", "Pending"],
+                ["human", "Human"],
+                ["closed", "Closed"],
+              ].map(([value, label]) => (
                 <button
                   type="button"
-                  key={item}
+                  key={value}
                   className={
-                    filter === item ? "filter active" : "filter"
+                    filter === value
+                      ? "filter active"
+                      : "filter"
                   }
-                  onClick={() => setFilter(item)}
+                  onClick={() => setFilter(value)}
                 >
-                  {item}
+                  {label}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="conversation-count">
-            <span>{filtered.length} conversations</span>
+            <span>
+              {loading
+                ? "Loading..."
+                : `${conversations.length} conversations`}
+            </span>
+
             <span>Latest activity</span>
           </div>
 
           <div className="conversation-items">
-            {filtered.map((item) => (
-              <button
-                type="button"
-                key={item.id}
-                className={
-                  selectedId === item.id
-                    ? "conversation-item selected"
-                    : "conversation-item"
-                }
-                onClick={() => setSelectedId(item.id)}
-              >
-                <div className="conversation-avatar">
-                  {item.initial}
-                </div>
+            {conversations.map((item) => {
+              const customer = item.customer || {};
+              const last = item.lastMessage;
 
-                <div className="conversation-main">
-                  <div className="conversation-name-row">
-                    <strong>{item.name}</strong>
-                    <small>{item.time}</small>
+              return (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={
+                    selectedId === item.id
+                      ? "conversation-item selected"
+                      : "conversation-item"
+                  }
+                  onClick={() =>
+                    setSelectedId(item.id)
+                  }
+                >
+                  <div className="conversation-avatar">
+                    {initials(customer)}
                   </div>
 
-                  <b>{item.subject}</b>
-                  <p>{item.message}</p>
+                  <div className="conversation-main">
+                    <div className="conversation-name-row">
+                      <strong>
+                        {customer.name || "Customer"}
+                      </strong>
 
-                  <div className="conversation-meta">
-                    <span
-                      className={
-                        item.channel === "WhatsApp"
-                          ? "channel-tag whatsapp"
-                          : "channel-tag voice"
-                      }
-                    >
-                      {item.channel === "WhatsApp" ? "◉" : "◖"}{" "}
-                      {item.channel}
-                    </span>
+                      <small>
+                        {formatTime(
+                          item.updatedAt
+                        )}
+                      </small>
+                    </div>
 
-                    <span
-                      className={
-                        item.status === "Open"
-                          ? "mini-status open"
-                          : "mini-status resolved"
-                      }
-                    >
-                      {item.status}
-                    </span>
+                    <b>
+                      {last?.text ||
+                        "No messages yet"}
+                    </b>
 
-                    {item.unread > 0 && (
-                      <span className="unread">
-                        {item.unread}
+                    <p>
+                      {customer.phone || ""}
+                    </p>
+
+                    <div className="conversation-meta">
+                      <span className="channel-tag">
+                        ◉ {channelLabel(item.channel)}
                       </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            ))}
 
-            {filtered.length === 0 && (
-              <div className="empty-conversations">
-                <div>⌕</div>
-                <strong>No conversations found</strong>
-                <p>Try another search or filter.</p>
-              </div>
-            )}
+                      <span
+                        className={
+                          item.status === "closed"
+                            ? "mini-status resolved"
+                            : "mini-status open"
+                        }
+                      >
+                        {statusLabel(item.status)}
+                      </span>
+
+                      {item.unread > 0 && (
+                        <span className="unread">
+                          {item.unread}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+
+            {!loading &&
+              conversations.length === 0 && (
+                <div className="empty-conversations">
+                  <div>⌕</div>
+                  <strong>
+                    No conversations found
+                  </strong>
+                  <p>
+                    Try another search or create a
+                    new conversation.
+                  </p>
+                </div>
+              )}
           </div>
         </section>
 
@@ -1972,13 +2134,25 @@ function ConversationsPage() {
             <div className="detail-head">
               <div className="detail-customer">
                 <div className="detail-avatar">
-                  {selected.initial}
+                  {initials(selected.customer)}
                 </div>
 
                 <div>
-                  <strong>{selected.name}</strong>
-                  <span>{selected.subject}</span>
-                  <small>{selected.phone}</small>
+                  <strong>
+                    {selected.customer?.name ||
+                      "Customer"}
+                  </strong>
+
+                  <span>
+                    {channelLabel(
+                      selected.channel
+                    )}
+                  </span>
+
+                  <small>
+                    {selected.customer?.phone ||
+                      ""}
+                  </small>
                 </div>
               </div>
 
@@ -1986,10 +2160,11 @@ function ConversationsPage() {
                 <button
                   type="button"
                   className="icon-action"
-                  onClick={() => {
-                    const q = selected.name || "";
-                    setSearch(q);
-                  }}
+                  onClick={() =>
+                    setSearch(
+                      selected.customer?.name || ""
+                    )
+                  }
                 >
                   ⌕
                 </button>
@@ -1997,7 +2172,7 @@ function ConversationsPage() {
                 <button
                   type="button"
                   className="icon-action"
-                  onClick={toggleStatus}
+                  onClick={changeStatus}
                   title="Change status"
                 >
                   ⋯
@@ -2007,23 +2182,28 @@ function ConversationsPage() {
 
             <div className="detail-info">
               <span>
-                {selected.channel === "WhatsApp" ? "◉" : "◖"}{" "}
-                {selected.channel}
+                ◉ {channelLabel(selected.channel)}
               </span>
+
               <span>•</span>
+
               <button
                 type="button"
                 className="status-button"
-                onClick={toggleStatus}
+                onClick={changeStatus}
               >
-                {selected.status}
+                {statusLabel(selected.status)}
               </button>
 
-              {selected.channel === "WhatsApp" && (
+              {selected.channel === "whatsapp" && (
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() => openWhatsApp(selected.phone)}
+                  onClick={() =>
+                    openWhatsApp(
+                      selected.customer?.phone
+                    )
+                  }
                 >
                   Open WhatsApp
                 </button>
@@ -2031,33 +2211,44 @@ function ConversationsPage() {
             </div>
 
             <div className="conversation-messages">
-              {(selected.messages || []).map((msg, index) => (
-                <div
-                  key={index}
-                  className={
-                    msg.from === "assistant"
-                      ? "message-row assistant"
-                      : "message-row customer"
-                  }
-                >
-                  <div className="message-bubble">
-                    <strong>
-                      {msg.from === "assistant"
-                        ? "Wassal Assistant"
-                        : selected.name}
-                    </strong>
-                    <p>{msg.text}</p>
-                    <small>{msg.time}</small>
+              {(selected.messages || []).map(
+                (msg) => (
+                  <div
+                    key={msg.id}
+                    className={
+                      msg.sender === "customer"
+                        ? "message-row customer"
+                        : "message-row assistant"
+                    }
+                  >
+                    <div className="message-bubble">
+                      <strong>
+                        {msg.sender === "customer"
+                          ? selected.customer
+                              ?.name || "Customer"
+                          : msg.sender === "ai"
+                          ? "Wassal AI"
+                          : "Human Agent"}
+                      </strong>
+
+                      <p>{msg.text}</p>
+
+                      <small>
+                        {formatTime(msg.createdAt)}
+                      </small>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
 
             <div className="conversation-composer">
               <input
                 type="text"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) =>
+                  setMessage(e.target.value)
+                }
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -2071,9 +2262,11 @@ function ConversationsPage() {
                 type="button"
                 className="primary send-button"
                 onClick={sendMessage}
-                disabled={!message.trim()}
+                disabled={
+                  !message.trim() || sending
+                }
               >
-                Send
+                {sending ? "Sending..." : "Send"}
               </button>
             </div>
           </section>
@@ -2092,14 +2285,19 @@ function ConversationsPage() {
           <div className="conversation-modal">
             <div className="modal-header">
               <div>
-                <div className="eyebrow">CUSTOMER COMMUNICATIONS</div>
+                <div className="eyebrow">
+                  CUSTOMER COMMUNICATIONS
+                </div>
+
                 <h3>New conversation</h3>
               </div>
 
               <button
                 type="button"
                 className="icon-action"
-                onClick={() => setShowNew(false)}
+                onClick={() =>
+                  setShowNew(false)
+                }
               >
                 ×
               </button>
@@ -2107,6 +2305,7 @@ function ConversationsPage() {
 
             <label>
               Customer name
+
               <input
                 autoFocus
                 type="text"
@@ -2123,6 +2322,7 @@ function ConversationsPage() {
 
             <label>
               Phone number
+
               <input
                 type="tel"
                 value={newForm.phone}
@@ -2137,22 +2337,8 @@ function ConversationsPage() {
             </label>
 
             <label>
-              Subject
-              <input
-                type="text"
-                value={newForm.subject}
-                onChange={(e) =>
-                  setNewForm({
-                    ...newForm,
-                    subject: e.target.value,
-                  })
-                }
-                placeholder="What is this conversation about?"
-              />
-            </label>
-
-            <label>
               Channel
+
               <select
                 value={newForm.channel}
                 onChange={(e) =>
@@ -2162,13 +2348,27 @@ function ConversationsPage() {
                   })
                 }
               >
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Voice">Voice</option>
+                <option value="web">
+                  Web Chat
+                </option>
+
+                <option value="whatsapp">
+                  WhatsApp
+                </option>
+
+                <option value="telegram">
+                  Telegram
+                </option>
+
+                <option value="messenger">
+                  Messenger
+                </option>
               </select>
             </label>
 
             <label>
               First message
+
               <textarea
                 value={newForm.message}
                 onChange={(e) =>
@@ -2186,7 +2386,9 @@ function ConversationsPage() {
               <button
                 type="button"
                 className="secondary"
-                onClick={() => setShowNew(false)}
+                onClick={() =>
+                  setShowNew(false)
+                }
               >
                 Cancel
               </button>
@@ -2231,11 +2433,18 @@ function ConversationsPage() {
           max-width: 78%;
           padding: 12px 15px;
           border-radius: 14px;
-          background: var(--surface-2, #f4f6f8);
+          background: var(
+            --surface-2,
+            #f4f6f8
+          );
         }
 
-        .message-row.assistant .message-bubble {
-          background: var(--accent, #111827);
+        .message-row.assistant
+          .message-bubble {
+          background: var(
+            --accent,
+            #111827
+          );
           color: white;
         }
 
@@ -2259,7 +2468,8 @@ function ConversationsPage() {
           display: flex;
           gap: 10px;
           padding: 14px;
-          border-top: 1px solid rgba(127,127,127,.18);
+          border-top: 1px solid
+            rgba(127, 127, 127, 0.18);
         }
 
         .conversation-composer input {
@@ -2267,14 +2477,15 @@ function ConversationsPage() {
           min-width: 0;
           padding: 12px 14px;
           border-radius: 10px;
-          border: 1px solid rgba(127,127,127,.3);
+          border: 1px solid
+            rgba(127, 127, 127, 0.3);
           background: transparent;
           color: inherit;
           outline: none;
         }
 
         .send-button:disabled {
-          opacity: .45;
+          opacity: 0.45;
           cursor: not-allowed;
         }
 
@@ -2282,7 +2493,7 @@ function ConversationsPage() {
           position: fixed;
           inset: 0;
           z-index: 9999;
-          background: rgba(0,0,0,.55);
+          background: rgba(0, 0, 0, 0.55);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2297,7 +2508,8 @@ function ConversationsPage() {
           color: inherit;
           border-radius: 18px;
           padding: 22px;
-          box-shadow: 0 25px 80px rgba(0,0,0,.3);
+          box-shadow: 0 25px 80px
+            rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
@@ -2326,7 +2538,8 @@ function ConversationsPage() {
           margin-top: 7px;
           padding: 12px 13px;
           border-radius: 10px;
-          border: 1px solid rgba(127,127,127,.3);
+          border: 1px solid
+            rgba(127, 127, 127, 0.3);
           background: transparent;
           color: inherit;
           font: inherit;
@@ -2349,7 +2562,7 @@ function ConversationsPage() {
           background: transparent;
           cursor: pointer;
           font-size: 20px;
-          opacity: .65;
+          opacity: 0.65;
         }
 
         .status-button {
@@ -3339,7 +3552,7 @@ function CallChatPage() {
           <div
             style={{
               display: "flex",
-              gap: "10px",
+              gap: "8px",
               flexWrap: "wrap",
               marginTop: "14px",
             }}
@@ -3389,7 +3602,7 @@ function CallChatPage() {
         <div
           style={{
             display: "flex",
-            gap: "10px",
+            gap: "8px",
             alignItems: "stretch",
             flexWrap: "wrap",
           }}
@@ -3443,7 +3656,7 @@ function CallChatPage() {
         <div
           style={{
             display: "flex",
-            gap: "10px",
+            gap: "8px",
             alignItems: "stretch",
             flexWrap: "wrap",
             marginTop: "12px",
@@ -3461,7 +3674,7 @@ function CallChatPage() {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "10px",
+              gap: "8px",
             }}
           >
             <button
@@ -3622,8 +3835,8 @@ function SettingsPage() {
 }
 
 
-function ModulePage({ title }) {
-  const isAgent = title === "AI Agent";
+
+function AIAgentModule() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -3656,7 +3869,10 @@ function ModulePage({ title }) {
         ...prev,
         {
           role: "assistant",
-          text: data?.reply || data?.error || "ما قدرت أنفذ الطلب حالياً.",
+          text:
+            data?.reply ||
+            data?.error ||
+            "ما قدرت أنفذ الطلب حالياً.",
         },
       ]);
     } catch {
@@ -3677,24 +3893,6 @@ function ModulePage({ title }) {
       e.preventDefault();
       sendMessage();
     }
-  }
-
-  if (!isAgent) {
-    return (
-      <div className="page">
-        <div className="module">
-          <div className="module-box">
-            <div className="module-icon">✦</div>
-            <h2>{title}</h2>
-            <p>
-              This module is ready for configuration. WASSAL AI will connect
-              your workflows, agents and customer channels from one place.
-            </p>
-            <button className="primary">Configure {title}</button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -3735,7 +3933,9 @@ function ModulePage({ title }) {
               key={index}
               style={{
                 alignSelf:
-                  item.role === "user" ? "flex-end" : "flex-start",
+                  item.role === "user"
+                    ? "flex-end"
+                    : "flex-start",
                 maxWidth: "78%",
                 padding: "12px 15px",
                 borderRadius: "14px",
@@ -3770,9 +3970,10 @@ function ModulePage({ title }) {
         <div
           style={{
             display: "flex",
-            gap: "10px",
+            gap: "8px",
             paddingTop: "14px",
-            borderTop: "1px solid rgba(255,255,255,.07)",
+            borderTop:
+              "1px solid rgba(255,255,255,.07)",
           }}
         >
           <textarea
@@ -3787,8 +3988,10 @@ function ModulePage({ title }) {
               resize: "none",
               padding: "12px 14px",
               borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,.1)",
-              background: "rgba(255,255,255,.04)",
+              border:
+                "1px solid rgba(255,255,255,.1)",
+              background:
+                "rgba(255,255,255,.04)",
               color: "inherit",
               outline: "none",
               fontFamily: "inherit",
@@ -3798,7 +4001,9 @@ function ModulePage({ title }) {
           <button
             className="primary"
             onClick={sendMessage}
-            disabled={loading || !message.trim()}
+            disabled={
+              loading || !message.trim()
+            }
             style={{ minWidth: "110px" }}
           >
             {loading ? "..." : "إرسال ↗"}
@@ -3807,4 +4012,1797 @@ function ModulePage({ title }) {
       </div>
     </div>
   );
+}
+
+
+/* =========================
+   CALENDAR
+========================= */
+
+function CalendarModule() {
+  const [events, setEvents] = useState([]);
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [editing, setEditing] = useState(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("wassal_calendar");
+      if (saved) setEvents(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "wassal_calendar",
+      JSON.stringify(events)
+    );
+  }, [events]);
+
+  function saveEvent() {
+    if (!title.trim() || !date) return;
+
+    const item = {
+      id: editing || Date.now(),
+      title: title.trim(),
+      date,
+      time,
+    };
+
+    setEvents((prev) =>
+      editing
+        ? prev.map((x) =>
+            x.id === editing ? item : x
+          )
+        : [...prev, item]
+    );
+
+    setTitle("");
+    setDate("");
+    setTime("");
+    setEditing(null);
+  }
+
+  function editEvent(item) {
+    setEditing(item.id);
+    setTitle(item.title);
+    setDate(item.date);
+    setTime(item.time || "");
+  }
+
+  function deleteEvent(id) {
+    setEvents((prev) =>
+      prev.filter((x) => x.id !== id)
+    );
+  }
+
+  const sorted = [...events].sort((a, b) =>
+    `${a.date} ${a.time}`.localeCompare(
+      `${b.date} ${b.time}`
+    )
+  );
+
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h3>📅 Calendar</h3>
+            <p>إدارة مواعيدك وأحداثك</p>
+          </div>
+          <span className="status">LOCAL</span>
+        </div>
+
+        <div className="card-inner">
+          <div className="module-form-grid">
+            <input
+              placeholder="اسم الموعد"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+
+            <button
+              className="primary"
+              onClick={saveEvent}
+            >
+              {editing ? "حفظ التعديل" : "إضافة موعد"}
+            </button>
+          </div>
+
+          <div className="module-list">
+            {sorted.length === 0 ? (
+              <div className="module-empty">
+                ما في مواعيد مضافة بعد.
+              </div>
+            ) : (
+              sorted.map((item) => (
+                <div className="module-row" key={item.id}>
+                  <div>
+                    <b>{item.title}</b>
+                    <small>
+                      {item.date}
+                      {item.time ? ` · ${item.time}` : ""}
+                    </small>
+                  </div>
+
+                  <div className="module-actions">
+                    <button
+                      className="secondary"
+                      onClick={() => editEvent(item)}
+                    >
+                      تعديل
+                    </button>
+                    <button
+                      className="secondary danger"
+                      onClick={() => deleteEvent(item.id)}
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================
+   LOCATION
+========================= */
+
+function LocationModule() {
+  const [location, setLocation] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function getLocation() {
+    if (!navigator.geolocation) {
+      setError("المتصفح لا يدعم تحديد الموقع.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+        setLoading(false);
+      },
+      (err) => {
+        setError(
+          err.message ||
+            "تعذر الحصول على الموقع."
+        );
+        setLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
+  }
+
+  function openMap() {
+    if (!location) return;
+
+    const url =
+      `https://www.google.com/maps?q=` +
+      `${location.latitude},${location.longitude}`;
+
+    window.open(url, "_blank");
+  }
+
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h3>📍 Location</h3>
+            <p>تحديد موقع الجهاز الحالي</p>
+          </div>
+          <span className="status">GPS</span>
+        </div>
+
+        <div className="card-inner">
+          <button
+            className="primary"
+            onClick={getLocation}
+            disabled={loading}
+          >
+            {loading
+              ? "جاري تحديد الموقع..."
+              : "تحديد موقعي"}
+          </button>
+
+          {error && (
+            <div className="module-error">
+              {error}
+            </div>
+          )}
+
+          {location && (
+            <div className="location-box">
+              <div>
+                <small>Latitude</small>
+                <strong>
+                  {location.latitude}
+                </strong>
+              </div>
+
+              <div>
+                <small>Longitude</small>
+                <strong>
+                  {location.longitude}
+                </strong>
+              </div>
+
+              <div>
+                <small>Accuracy</small>
+                <strong>
+                  {Math.round(location.accuracy)} m
+                </strong>
+              </div>
+
+              <button
+                className="primary"
+                onClick={openMap}
+              >
+                فتح على الخريطة 🌐
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================
+   FILES
+========================= */
+
+function FilesModule() {
+  const [files, setFiles] = useState([]);
+  const [selected, setSelected] = useState(null);
+
+  function chooseFiles(e) {
+    const selectedFiles = Array.from(e.target.files || []);
+    setFiles(selectedFiles);
+    setSelected(null);
+  }
+
+  function preview(file) {
+    if (!file) return;
+
+    if (
+      file.type.startsWith("text/") ||
+      file.type === "application/json"
+    ) {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        setSelected({
+          name: file.name,
+          type: "text",
+          content: String(reader.result || ""),
+        });
+      };
+
+      reader.onerror = () => {
+        setSelected({
+          name: file.name,
+          type: "info",
+          content: "تعذّرت قراءة هذا الملف.",
+        });
+      };
+
+      reader.readAsText(file);
+      return;
+    }
+
+    if (file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+
+      setSelected({
+        name: file.name,
+        type: "image",
+        url,
+      });
+      return;
+    }
+
+    setSelected({
+      name: file.name,
+      type: "info",
+      content:
+        "تم اختيار الملف بنجاح. المعاينة المباشرة لهذا النوع غير متاحة حالياً.",
+    });
+  }
+
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h3>📁 Files</h3>
+            <p>اختيار واستعراض الملفات من جهازك</p>
+          </div>
+
+          <span className="status">LOCAL</span>
+        </div>
+
+        <div className="card-inner">
+          <label
+            className="file-picker"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              minHeight: "150px",
+              cursor: "pointer",
+              textAlign: "center",
+            }}
+          >
+            <span style={{ fontSize: "38px" }}>📁</span>
+
+            <b>اختيار ملفات</b>
+
+            <small>
+              صور، نصوص، PDF وملفات أخرى
+            </small>
+
+            <input
+              type="file"
+              multiple
+              onChange={chooseFiles}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          {files.length > 0 && (
+            <div className="module-list" style={{ marginTop: "18px" }}>
+              {files.map((file, index) => (
+                <div
+                  className="module-row"
+                  key={`${file.name}-${index}`}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <b
+                      style={{
+                        display: "block",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {file.name}
+                    </b>
+
+                    <small>
+                      {Math.max(1, Math.round(file.size / 1024))} KB
+                      {" · "}
+                      {file.type || "unknown"}
+                    </small>
+                  </div>
+
+                  <button
+                    className="secondary"
+                    onClick={() => preview(file)}
+                  >
+                    معاينة
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {files.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                opacity: 0.65,
+                padding: "25px 10px",
+              }}
+            >
+              ما في ملفات مختارة بعد
+            </div>
+          )}
+
+          {selected && (
+            <div
+              className="file-preview"
+              style={{
+                marginTop: "18px",
+                overflow: "hidden",
+              }}
+            >
+              <b>{selected.name}</b>
+
+              {selected.type === "image" ? (
+                <img
+                  src={selected.url}
+                  alt={selected.name}
+                  style={{
+                    display: "block",
+                    maxWidth: "100%",
+                    maxHeight: "400px",
+                    objectFit: "contain",
+                    borderRadius: "12px",
+                    marginTop: "12px",
+                  }}
+                />
+              ) : selected.type === "text" ? (
+                <pre
+                  style={{
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    maxHeight: "400px",
+                    overflow: "auto",
+                    marginTop: "12px",
+                  }}
+                >
+                  {selected.content}
+                </pre>
+              ) : (
+                <p style={{ marginTop: "12px" }}>
+                  {selected.content}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================
+   WEB
+   ========================= */
+
+function WebModule() {
+  const [url, setUrl] = useState("");
+
+  function openWeb() {
+    let value = url.trim();
+    if (!value) return;
+
+    if (!/^https?:\/\//i.test(value)) {
+      value = "https://" + value;
+    }
+
+    window.open(value, "_blank");
+  }
+
+  function searchWeb() {
+    const q = url.trim();
+    if (!q) return;
+
+    window.open(
+      `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+      "_blank"
+    );
+  }
+
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h3>🌐 Web</h3>
+            <p>فتح المواقع والبحث على الويب</p>
+          </div>
+          <span className="status">WEB</span>
+        </div>
+
+        <div className="card-inner">
+          <div className="web-box">
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  openWeb();
+                }
+              }}
+              placeholder="اكتب رابط أو كلمة بحث..."
+            />
+
+            <button
+              className="primary"
+              onClick={openWeb}
+            >
+              فتح
+            </button>
+
+            <button
+              className="secondary"
+              onClick={searchWeb}
+            >
+              بحث 🔎
+            </button>
+          </div>
+
+          <div className="module-shortcuts">
+            <button
+              className="secondary"
+              onClick={() =>
+                window.open(
+                  "https://www.google.com",
+                  "_blank"
+                )
+              }
+            >
+              Google
+            </button>
+
+            <button
+              className="secondary"
+              onClick={() =>
+                window.open(
+                  "https://www.youtube.com",
+                  "_blank"
+                )
+              }
+            >
+              YouTube
+            </button>
+
+            <button
+              className="secondary"
+              onClick={() =>
+                window.open(
+                  "https://www.google.com/maps",
+                  "_blank"
+                )
+              }
+            >
+              Maps
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================
+   CALCULATOR
+========================= */
+
+function TasksModule() {
+  const [tasks, setTasks] = useState([]);
+  const [text, setText] = useState("");
+  const [priority, setPriority] = useState("متوسطة");
+  const [due, setDue] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(
+        "wassal_tasks"
+      );
+
+      if (saved) {
+        setTasks(JSON.parse(saved));
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "wassal_tasks",
+      JSON.stringify(tasks)
+    );
+  }, [tasks]);
+
+  function addTask() {
+    if (!text.trim()) return;
+
+    setTasks((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: text.trim(),
+        priority,
+        due,
+        done: false,
+      },
+    ]);
+
+    setText("");
+    setDue("");
+    setPriority("متوسطة");
+  }
+
+  function toggleTask(id) {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id
+          ? { ...task, done: !task.done }
+          : task
+      )
+    );
+  }
+
+  function deleteTask(id) {
+    setTasks((prev) =>
+      prev.filter((task) => task.id !== id)
+    );
+  }
+
+  function priorityClass(value) {
+    if (value === "عالية") return "high";
+    if (value === "منخفضة") return "low";
+    return "medium";
+  }
+
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h3>📝 Tasks</h3>
+            <p>إدارة مهامك اليومية</p>
+          </div>
+          <span className="status">LOCAL</span>
+        </div>
+
+        <div className="card-inner">
+          <div className="task-form">
+            <input
+              value={text}
+              onChange={(e) =>
+                setText(e.target.value)
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  addTask();
+                }
+              }}
+              placeholder="اكتب المهمة..."
+            />
+
+            <select
+              value={priority}
+              onChange={(e) =>
+                setPriority(e.target.value)
+              }
+            >
+              <option>عالية</option>
+              <option>متوسطة</option>
+              <option>منخفضة</option>
+            </select>
+
+            <input
+              type="date"
+              value={due}
+              onChange={(e) =>
+                setDue(e.target.value)
+              }
+            />
+
+            <button
+              className="primary"
+              onClick={addTask}
+            >
+              + إضافة
+            </button>
+          </div>
+
+          <div className="module-list">
+            {tasks.length === 0 ? (
+              <div className="module-empty">
+                ما عندك مهام حالياً.
+              </div>
+            ) : (
+              tasks.map((task) => (
+                <div
+                  className={
+                    task.done
+                      ? "module-row task-done"
+                      : "module-row"
+                  }
+                  key={task.id}
+                >
+                  <div className="task-main">
+                    <button
+                      className="task-check"
+                      onClick={() =>
+                        toggleTask(task.id)
+                      }
+                    >
+                      {task.done ? "✓" : ""}
+                    </button>
+
+                    <div>
+                      <b>{task.text}</b>
+
+                      <small>
+                        {task.priority}
+                        {task.due
+                          ? ` · ${task.due}`
+                          : ""}
+                      </small>
+                    </div>
+                  </div>
+
+                  <div className="module-actions">
+                    <span
+                      className={
+                        "priority " +
+                        priorityClass(task.priority)
+                      }
+                    >
+                      {task.priority}
+                    </span>
+
+                    <button
+                      className="secondary danger"
+                      onClick={() =>
+                        deleteTask(task.id)
+                      }
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================
+   MODULE ROUTER
+========================= */
+
+function AdminPage() {
+  const [tab, setTab] = useState("overview");
+
+  const [tenants, setTenants] = useState([
+    {
+      id: 1,
+      company: "WASSAL Demo",
+      owner: "Admin",
+      plan: "Enterprise",
+      status: "Active",
+      tokens: 74200,
+      limit: 100000,
+      requests: 1842,
+    },
+    {
+      id: 2,
+      company: "Demo Company",
+      owner: "Customer",
+      plan: "Pro",
+      status: "Active",
+      tokens: 38200,
+      limit: 50000,
+      requests: 921,
+    },
+  ]);
+
+  const [provider, setProvider] = useState("OpenAI");
+  const [model, setModel] = useState("GPT-4o");
+  const [temperature, setTemperature] = useState("0.7");
+  const [monthlyLimit, setMonthlyLimit] = useState("100000");
+  const [fallback, setFallback] = useState("Enabled");
+
+  const [logs, setLogs] = useState([
+    {
+      action: "Admin dashboard initialized",
+      type: "SYSTEM",
+      time: new Date().toLocaleString(),
+    },
+    {
+      action: "AI service ready",
+      type: "AI",
+      time: new Date().toLocaleString(),
+    },
+  ]);
+
+  const [maintenance, setMaintenance] = useState(false);
+  const [announcements, setAnnouncements] = useState(false);
+  const [guardrails, setGuardrails] = useState(true);
+
+  function log(action, type = "ADMIN") {
+    setLogs((prev) => [
+      {
+        action,
+        type,
+        time: new Date().toLocaleString(),
+      },
+      ...prev,
+    ]);
+  }
+
+  function addTenant() {
+    const company = window.prompt("اسم الشركة:");
+    if (!company?.trim()) return;
+
+    const owner = window.prompt("اسم المسؤول:");
+    if (!owner?.trim()) return;
+
+    const tenant = {
+      id: Date.now(),
+      company: company.trim(),
+      owner: owner.trim(),
+      plan: "Free",
+      status: "Active",
+      tokens: 0,
+      limit: 10000,
+      requests: 0,
+    };
+
+    setTenants((prev) => [...prev, tenant]);
+    log(`Tenant created: ${tenant.company}`, "TENANT");
+  }
+
+  function toggleTenant(id) {
+    setTenants((prev) =>
+      prev.map((tenant) => {
+        if (tenant.id !== id) return tenant;
+
+        const status =
+          tenant.status === "Active" ? "Suspended" : "Active";
+
+        log(
+          `${tenant.company} → ${status}`,
+          "TENANT"
+        );
+
+        return { ...tenant, status };
+      })
+    );
+  }
+
+  function changePlan(id) {
+    const plans = ["Free", "Pro", "Enterprise"];
+
+    setTenants((prev) =>
+      prev.map((tenant) => {
+        if (tenant.id !== id) return tenant;
+
+        const index = plans.indexOf(tenant.plan);
+        const next = plans[(index + 1) % plans.length];
+
+        const limits = {
+          Free: 10000,
+          Pro: 50000,
+          Enterprise: 100000,
+        };
+
+        log(
+          `${tenant.company} plan changed to ${next}`,
+          "BILLING"
+        );
+
+        return {
+          ...tenant,
+          plan: next,
+          limit: limits[next],
+        };
+      })
+    );
+  }
+
+  const totalTokens = tenants.reduce(
+    (sum, tenant) => sum + tenant.tokens,
+    0
+  );
+
+  const totalRequests = tenants.reduce(
+    (sum, tenant) => sum + tenant.requests,
+    0
+  );
+
+  const activeTenants = tenants.filter(
+    (tenant) => tenant.status === "Active"
+  ).length;
+
+  const tabs = [
+    ["overview", "📊 Overview"],
+    ["tenants", "🏢 Tenants"],
+    ["ai", "🤖 AI & LLM"],
+    ["usage", "📈 Usage"],
+    ["integrations", "🔌 Integrations"],
+    ["security", "🛡️ Security"],
+    ["logs", "📋 Logs"],
+    ["operations", "⚙️ Operations"],
+  ];
+
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h3>♜ WASSAL AI Control Center</h3>
+            <p>SaaS / B2B Administration</p>
+          </div>
+
+          <span className="status">
+            {maintenance ? "MAINTENANCE" : "SYSTEM ONLINE"}
+          </span>
+        </div>
+
+        <div className="card-inner">
+
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginBottom: "22px",
+            }}
+          >
+            {tabs.map(([id, label]) => (
+              <button
+                key={id}
+                className={tab === id ? "primary" : "secondary"}
+                onClick={() => setTab(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {tab === "overview" && (
+            <>
+              <div className="grid2">
+
+                <div className="card">
+                  <div className="card-inner">
+                    <small>ACTIVE TENANTS</small>
+                    <h2>{activeTenants}</h2>
+                    <p>الشركات النشطة</p>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="card-inner">
+                    <small>AI REQUESTS</small>
+                    <h2>{totalRequests.toLocaleString()}</h2>
+                    <p>إجمالي طلبات الذكاء الاصطناعي</p>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="card-inner">
+                    <small>TOKENS</small>
+                    <h2>{totalTokens.toLocaleString()}</h2>
+                    <p>إجمالي الاستهلاك</p>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="card-inner">
+                    <small>AI PROVIDER</small>
+                    <h2>{provider}</h2>
+                    <p>{model}</p>
+                  </div>
+                </div>
+
+              </div>
+
+              <div
+                className="module-list"
+                style={{ marginTop: "20px" }}
+              >
+                <div className="module-row">
+                  <div>
+                    <b>🤖 AI Infrastructure</b>
+                    <small>
+                      {provider} · {model} · Temperature {temperature}
+                    </small>
+                  </div>
+                  <span className="status">READY</span>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>🛡️ Guardrails</b>
+                    <small>
+                      حماية البيانات ومحاولات إساءة الاستخدام
+                    </small>
+                  </div>
+                  <span className="status">
+                    {guardrails ? "ACTIVE" : "OFF"}
+                  </span>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>🔄 Fallback Provider</b>
+                    <small>التبديل التلقائي عند فشل المزود الرئيسي</small>
+                  </div>
+                  <span className="status">{fallback}</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {tab === "tenants" && (
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "15px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <h3>🏢 Tenant Management</h3>
+                  <p>إدارة الشركات والعملاء والباقات</p>
+                </div>
+
+                <button className="primary" onClick={addTenant}>
+                  + شركة جديدة
+                </button>
+              </div>
+
+              <div className="module-list">
+                {tenants.map((tenant) => {
+                  const percentage = Math.min(
+                    100,
+                    Math.round(
+                      (tenant.tokens / tenant.limit) * 100
+                    )
+                  );
+
+                  return (
+                    <div className="module-row" key={tenant.id}>
+                      <div style={{ flex: 1 }}>
+                        <b>{tenant.company}</b>
+
+                        <small>
+                          {tenant.owner} · {tenant.plan} ·{" "}
+                          {tenant.status}
+                        </small>
+
+                        <div
+                          style={{
+                            marginTop: "8px",
+                            height: "6px",
+                            borderRadius: "10px",
+                            background: "rgba(255,255,255,.08)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${percentage}%`,
+                              height: "100%",
+                              background:
+                                percentage >= 80
+                                  ? "#ef4444"
+                                  : "#22c55e",
+                            }}
+                          />
+                        </div>
+
+                        <small>
+                          {tenant.tokens.toLocaleString()} /{" "}
+                          {tenant.limit.toLocaleString()} tokens
+                        </small>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "6px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <button
+                          className="secondary"
+                          onClick={() => changePlan(tenant.id)}
+                        >
+                          Plan
+                        </button>
+
+                        <button
+                          className="secondary"
+                          onClick={() => toggleTenant(tenant.id)}
+                        >
+                          {tenant.status === "Active"
+                            ? "Suspend"
+                            : "Activate"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {tab === "ai" && (
+            <div>
+              <h3>🤖 AI & LLM Management</h3>
+              <p>التحكم بمزودات ونماذج الذكاء الاصطناعي</p>
+
+              <div className="module-form-grid">
+
+                <select
+                  value={provider}
+                  onChange={(e) => {
+                    setProvider(e.target.value);
+                    log(
+                      `AI provider changed to ${e.target.value}`,
+                      "AI"
+                    );
+                  }}
+                >
+                  <option>OpenAI</option>
+                  <option>Groq</option>
+                  <option>Google</option>
+                  <option>Anthropic</option>
+                  <option>Custom Provider</option>
+                </select>
+
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                >
+                  <option>GPT-4o</option>
+                  <option>GPT-5</option>
+                  <option>Llama 3.3</option>
+                  <option>Claude</option>
+                  <option>Gemini</option>
+                </select>
+
+                <input
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  placeholder="Temperature"
+                />
+
+                <input
+                  value={monthlyLimit}
+                  onChange={(e) => setMonthlyLimit(e.target.value)}
+                  placeholder="Monthly Token Limit"
+                />
+
+              </div>
+
+              <div className="module-list">
+
+                <div className="module-row">
+                  <div>
+                    <b>Primary Provider</b>
+                    <small>{provider}</small>
+                  </div>
+                  <span className="status">ACTIVE</span>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>Fallback Provider</b>
+                    <small>Automatic failover</small>
+                  </div>
+
+                  <button
+                    className="secondary"
+                    onClick={() => {
+                      const next =
+                        fallback === "Enabled"
+                          ? "Disabled"
+                          : "Enabled";
+
+                      setFallback(next);
+                      log(
+                        `Fallback provider ${next}`,
+                        "AI"
+                      );
+                    }}
+                  >
+                    {fallback}
+                  </button>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>Token Alerts</b>
+                    <small>تنبيه عند 80% و100%</small>
+                  </div>
+                  <span className="status">80% / 100%</span>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {tab === "usage" && (
+            <div>
+              <h3>📈 Usage & Cost Control</h3>
+              <p>مراقبة استهلاك الذكاء الاصطناعي</p>
+
+              <div className="module-list">
+                {tenants.map((tenant) => (
+                  <div className="module-row" key={tenant.id}>
+                    <div>
+                      <b>{tenant.company}</b>
+                      <small>
+                        {tenant.requests.toLocaleString()} requests ·{" "}
+                        {tenant.tokens.toLocaleString()} tokens
+                      </small>
+                    </div>
+
+                    <span className="status">
+                      {Math.round(
+                        (tenant.tokens / tenant.limit) * 100
+                      )}
+                      %
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "integrations" && (
+            <div>
+              <h3>🔌 Integrations Hub</h3>
+              <p>مركز القنوات والتكاملات</p>
+
+              <div className="module-list">
+                {[
+                  ["WhatsApp", "📱", "READY"],
+                  ["Telegram", "✈️", "READY"],
+                  ["Webhooks", "🔗", "READY"],
+                  ["CRM", "🏢", "CONFIGURE"],
+                  ["Google Sheets", "📊", "CONFIGURE"],
+                ].map(([name, icon, status]) => (
+                  <div className="module-row" key={name}>
+                    <div>
+                      <b>
+                        {icon} {name}
+                      </b>
+                      <small>Integration service</small>
+                    </div>
+
+                    <span className="status">{status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "security" && (
+            <div>
+              <h3>🛡️ Security & Guardrails</h3>
+              <p>حماية النظام والبيانات</p>
+
+              <div className="module-list">
+
+                <div className="module-row">
+                  <div>
+                    <b>PII Redaction</b>
+                    <small>إخفاء البيانات الحساسة</small>
+                  </div>
+
+                  <span className="status">ACTIVE</span>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>Prompt Injection Detection</b>
+                    <small>مراقبة محاولات تجاوز النظام</small>
+                  </div>
+
+                  <span className="status">ACTIVE</span>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>Guardrails</b>
+                    <small>سياسات حماية الاستجابات</small>
+                  </div>
+
+                  <button
+                    className={
+                      guardrails ? "primary" : "secondary"
+                    }
+                    onClick={() => {
+                      setGuardrails((v) => !v);
+                      log(
+                        `Guardrails ${
+                          guardrails ? "disabled" : "enabled"
+                        }`,
+                        "SECURITY"
+                      );
+                    }}
+                  >
+                    {guardrails ? "ON" : "OFF"}
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {tab === "logs" && (
+            <div>
+              <h3>📋 Activity Logs</h3>
+              <p>السجل التشغيلي والإداري</p>
+
+              <div className="module-list">
+                {logs.map((item, index) => (
+                  <div className="module-row" key={index}>
+                    <div>
+                      <b>{item.action}</b>
+                      <small>
+                        {item.type} · {item.time}
+                      </small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "operations" && (
+            <div>
+              <h3>⚙️ System Operations</h3>
+              <p>إدارة تشغيل وصيانة WASSAL AI</p>
+
+              <div className="module-list">
+
+                <div className="module-row">
+                  <div>
+                    <b>Maintenance Mode</b>
+                    <small>
+                      إيقاف الخدمات مؤقتًا للصيانة
+                    </small>
+                  </div>
+
+                  <button
+                    className={
+                      maintenance ? "primary" : "secondary"
+                    }
+                    onClick={() => {
+                      setMaintenance((v) => !v);
+                      log(
+                        `Maintenance ${
+                          maintenance ? "disabled" : "enabled"
+                        }`,
+                        "SYSTEM"
+                      );
+                    }}
+                  >
+                    {maintenance ? "ON" : "OFF"}
+                  </button>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>System Announcements</b>
+                    <small>
+                      إظهار إعلانات للعملاء
+                    </small>
+                  </div>
+
+                  <button
+                    className={
+                      announcements ? "primary" : "secondary"
+                    }
+                    onClick={() => {
+                      setAnnouncements((v) => !v);
+                      log(
+                        `Announcements ${
+                          announcements ? "disabled" : "enabled"
+                        }`,
+                        "SYSTEM"
+                      );
+                    }}
+                  >
+                    {announcements ? "ON" : "OFF"}
+                  </button>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>Database Backup</b>
+                    <small>
+                      تجهيز نقطة نسخ احتياطية
+                    </small>
+                  </div>
+
+                  <button
+                    className="secondary"
+                    onClick={() =>
+                      log("Backup requested", "BACKUP")
+                    }
+                  >
+                    Create Backup
+                  </button>
+                </div>
+
+                <div className="module-row">
+                  <div>
+                    <b>Data Export</b>
+                    <small>
+                      تجهيز تصدير بيانات النظام
+                    </small>
+                  </div>
+
+                  <button
+                    className="secondary"
+                    onClick={() =>
+                      log("Data export requested", "EXPORT")
+                    }
+                  >
+                    Export
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModulePage({ title }) {
+  if (title === "AI Agent") {
+    return <AIAgentModule />;
+  }
+
+  if (title === "Calendar") {
+    return <CalendarModule />;
+  }
+
+  if (title === "Location") {
+    return <LocationModule />;
+  }
+
+  if (title === "Files") {
+    return <FilesModule />;
+  }
+
+  if (title === "Web") {
+    return <WebModule />;
+  }
+
+  if (title === "Calculator") {
+    return <CalculatorModule />;
+  }
+
+  if (title === "Tasks") {
+    return <TasksModule />;
+  }
+
+  return (
+    <div className="page">
+      <div className="module">
+        <div className="module-box">
+          <div className="module-icon">✦</div>
+          <h2>{title}</h2>
+          <p>
+            This module is ready for configuration.
+            WASSAL AI will connect your workflows,
+            agents and customer channels from one place.
+          </p>
+          <button className="primary">
+            Configure {title}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================
+   MODULE STYLES
+========================= */
+
+const moduleStyle = `
+.module-form-grid,
+.task-form {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.module-form-grid input,
+.task-form input,
+.task-form select,
+.web-box input,
+.calculator-display {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  color: inherit;
+  outline: none;
+  font-family: inherit;
+}
+
+.module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.module-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.025);
+}
+
+.module-row b {
+  display: block;
+  font-size: 12px;
+}
+
+.module-row small {
+  display: block;
+  margin-top: 4px;
+  color: #71809a;
+  font-size: 10px;
+}
+
+.module-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.danger {
+  color: #ff8b98 !important;
+}
+
+.module-empty {
+  padding: 35px 20px;
+  text-align: center;
+  color: #71809a;
+}
+
+.module-error {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 10px;
+  color: #ff9ba5;
+  background: rgba(255,80,100,.08);
+}
+
+.location-box {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.location-box > div {
+  padding: 15px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.location-box small {
+  display: block;
+  color: #71809a;
+  font-size: 9px;
+}
+
+.location-box strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.file-picker {
+  min-height: 150px;
+  border: 1px dashed rgba(124,150,255,.35);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  background: rgba(124,150,255,.04);
+}
+
+.file-picker span {
+  font-size: 32px;
+}
+
+.file-picker b {
+  font-size: 13px;
+}
+
+.file-picker small {
+  color: #71809a;
+}
+
+.file-picker input {
+  display: none;
+}
+
+.file-preview {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.07);
+  background: rgba(255,255,255,.025);
+  overflow: auto;
+}
+
+.file-preview pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #aeb9cc;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.web-box {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 9px;
+}
+
+.module-shortcuts {
+  display: flex;
+  gap: 9px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.calculator-display {
+  text-align: right;
+  font-size: 22px;
+}
+
+.calculator-result {
+  margin: 12px 0;
+  padding: 15px;
+  text-align: right;
+  border-radius: 10px;
+  background: rgba(124,150,255,.08);
+  color: #8fa5ff;
+  font-size: 24px;
+  font-weight: 800;
+  overflow-x: auto;
+}
+
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-key {
+  min-height: 48px;
+}
+
+.calc-equal {
+  grid-column: span 2;
+}
+
+.task-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-check {
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  border: 1px solid rgba(124,150,255,.3);
+  background: rgba(124,150,255,.08);
+  color: white;
+  cursor: pointer;
+}
+
+.task-done b {
+  text-decoration: line-through;
+  opacity: .5;
+}
+
+.priority {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 9px;
+}
+
+.priority.high {
+  color: #ff8f9c;
+  background: rgba(255,80,100,.08);
+}
+
+.priority.medium {
+  color: #ffc66d;
+  background: rgba(255,180,60,.08);
+}
+
+.priority.low {
+  color: #5ed8b1;
+  background: rgba(60,210,160,.08);
+}
+
+@media (max-width: 800px) {
+  .module-form-grid,
+  .task-form,
+  .location-box {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .web-box {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .module-form-grid,
+  .task-form,
+  .location-box {
+    grid-template-columns: 1fr;
+  }
+
+  .module-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .module-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+`;
+
+export function ModuleStyles() {
+  return <style jsx global>{moduleStyle}</style>;
 }
