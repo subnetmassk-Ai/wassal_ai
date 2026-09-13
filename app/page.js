@@ -1590,23 +1590,30 @@ function ConversationsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [message, setMessage] = useState("");
-  const [showNew, setShowNew] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [agents, setAgents] = useState([]);
+  const [quickReplies, setQuickReplies] = useState([]);
+  const [copilot, setCopilot] = useState("");
+  const [showProfile, setShowProfile] = useState(true);
   const [error, setError] = useState("");
 
-  const [newForm, setNewForm] = useState({
-    name: "",
-    phone: "",
-    subject: "",
-    channel: "web",
-    message: "",
-  });
+  async function loadMeta() {
+    try {
+      const res = await fetch("/api/conversations/meta");
+      const data = await res.json();
+
+      setAgents(data.agents || []);
+      setQuickReplies(data.quickReplies || []);
+    } catch {
+      setAgents([]);
+      setQuickReplies([]);
+    }
+  }
 
   async function loadConversations() {
     try {
       setLoading(true);
-      setError("");
 
       const params = new URLSearchParams();
 
@@ -1618,33 +1625,24 @@ function ConversationsPage() {
         params.set("search", search.trim());
       }
 
-      const response = await fetch(
-        "/api/conversations?" + params.toString(),
+      const res = await fetch(
+        `/api/conversations?${params.toString()}`,
         { cache: "no-store" }
       );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok || !data.ok) {
+      if (!res.ok) {
         throw new Error(data.error || "Failed to load conversations");
       }
 
       setConversations(data.conversations || []);
+      setError("");
 
-      if (data.conversations?.length) {
-        const exists = data.conversations.some(
-          (item) => item.id === selectedId
-        );
-
-        if (!selectedId || !exists) {
-          setSelectedId(data.conversations[0].id);
-        }
-      } else {
-        setSelectedId(null);
-        setSelected(null);
+      if (!selectedId && data.conversations?.length) {
+        setSelectedId(data.conversations[0].id);
       }
     } catch (err) {
-      console.error(err);
       setError(err.message || "Failed to load conversations");
     } finally {
       setLoading(false);
@@ -1655,23 +1653,26 @@ function ConversationsPage() {
     if (!id) return;
 
     try {
-      const response = await fetch(
-        "/api/conversations/" + encodeURIComponent(id),
+      const res = await fetch(
+        `/api/conversations/${id}`,
         { cache: "no-store" }
       );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok || !data.ok) {
+      if (!res.ok) {
         throw new Error(data.error || "Conversation not found");
       }
 
       setSelected(data.conversation);
     } catch (err) {
-      console.error(err);
       setError(err.message || "Failed to load conversation");
     }
   }
+
+  useEffect(() => {
+    loadMeta();
+  }, []);
 
   useEffect(() => {
     loadConversations();
@@ -1683,230 +1684,108 @@ function ConversationsPage() {
     }
   }, [selectedId]);
 
-  async function sendMessage() {
-    const text = message.trim();
+  async function updateConversation(payload) {
+    if (!selectedId) return;
 
-    if (!text || !selected || sending) return;
+    const res = await fetch(
+      `/api/conversations/${selectedId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Update failed");
+    }
+
+    setSelected(data.conversation);
+    await loadConversations();
+  }
+
+  async function sendMessage(text = message) {
+    if (!selectedId || !text.trim() || sending) return;
 
     try {
       setSending(true);
 
-      const response = await fetch(
-        "/api/conversations/" +
-          encodeURIComponent(selected.id) +
-          "/messages",
+      const res = await fetch(
+        `/api/conversations/${selectedId}/messages`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            sender: "human",
-            text,
+            sender: selected?.assignedTo === "AI" ? "ai" : "agent",
+            text: text.trim(),
             type: "text",
           }),
         }
       );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Failed to send message");
+      if (!res.ok) {
+        throw new Error(data.error || "Message failed");
       }
 
-      setSelected(data.conversation);
       setMessage("");
-
+      setSelected(data.conversation);
       await loadConversations();
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to send message");
+      setError(err.message || "Could not send message");
     } finally {
       setSending(false);
     }
   }
 
-  async function changeStatus() {
+  function useQuickReply(text) {
+    setMessage(text);
+  }
+
+  function generateCopilot() {
     if (!selected) return;
 
-    const nextStatus =
-      selected.status === "closed" ? "open" : "closed";
+    const lastCustomerMessage =
+      [...(selected.messages || [])]
+        .reverse()
+        .find((m) => m.sender === "customer");
 
-    try {
-      const response = await fetch(
-        "/api/conversations/" +
-          encodeURIComponent(selected.id),
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: nextStatus,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Failed to update status");
-      }
-
-      setSelected(data.conversation);
-      await loadConversations();
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to update status");
-    }
-  }
-
-  async function markRead() {
-    if (!selected || !selected.unread) return;
-
-    try {
-      const response = await fetch(
-        "/api/conversations/" +
-          encodeURIComponent(selected.id),
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            markRead: true,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.ok) {
-        setSelected(data.conversation);
-        await loadConversations();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  useEffect(() => {
-    if (selected) {
-      markRead();
-    }
-  }, [selectedId]);
-
-  async function createConversation() {
-    const name = newForm.name.trim();
-    let phone = newForm.phone.trim();
-
-    phone = phone.replace(/[\s().-]/g, "");
-
-    if (phone.startsWith("00")) {
-      phone = "+" + phone.slice(2);
-    }
-
-    if (
-      phone.startsWith("03") ||
-      phone.startsWith("70") ||
-      phone.startsWith("71") ||
-      phone.startsWith("76") ||
-      phone.startsWith("78") ||
-      phone.startsWith("79") ||
-      phone.startsWith("81")
-    ) {
-      phone = "+961" + phone;
-    } else if (/^3\d{7}$/.test(phone)) {
-      phone = "+961" + phone;
-    } else if (
-      /^7\d{7}$/.test(phone) ||
-      /^8\d{7}$/.test(phone)
-    ) {
-      phone = "+961" + phone;
-    }
-
-    if (!name) {
-      alert("Please enter the customer name.");
+    if (!lastCustomerMessage) {
+      setCopilot("مرحباً! كيف فينا نساعدك اليوم؟");
       return;
     }
 
-    if (!phone) {
-      alert("Please enter the phone number.");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/conversations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          customer: {
-            name,
-            phone,
-          },
-          channel: newForm.channel,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(
-          data.error || "Failed to create conversation"
-        );
-      }
-
-      const created = data.conversation;
-
-      if (newForm.message.trim()) {
-        await fetch(
-          "/api/conversations/" +
-            encodeURIComponent(created.id) +
-            "/messages",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              sender: "human",
-              text: newForm.message.trim(),
-              type: "text",
-            }),
-          }
-        );
-      }
-
-      setShowNew(false);
-
-      setNewForm({
-        name: "",
-        phone: "",
-        subject: "",
-        channel: "web",
-        message: "",
-      });
-
-      setSelectedId(created.id);
-
-      await loadConversations();
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to create conversation");
-    }
+    setCopilot(
+      "شكراً لتواصلك معنا. فهمت طلبك، وسأساعدك بالتأكد من التفاصيل ومتابعة الموضوع معك."
+    );
   }
 
-  function openWhatsApp(phone) {
-    const number = String(phone || "").replace(/\D/g, "");
+  function channelLabel(channel) {
+    if (channel === "whatsapp") return "◉ WhatsApp";
+    if (channel === "instagram") return "◎ Instagram";
+    return "◌ Web Chat";
+  }
 
-    if (!number) {
-      alert("Invalid phone number.");
-      return;
-    }
+  function statusLabel(status) {
+    if (status === "closed") return "Resolved";
+    if (status === "human") return "Human";
+    if (status === "pending") return "Pending";
+    if (status === "new") return "New";
+    return "Open";
+  }
 
-    window.location.href = "https://wa.me/" + number;
+  function statusClass(status) {
+    if (status === "closed") return "status closed";
+    if (status === "human") return "status human";
+    if (status === "pending") return "status pending";
+    return "status open";
   }
 
   function formatTime(value) {
@@ -1922,668 +1801,902 @@ function ConversationsPage() {
     }
   }
 
-  function channelLabel(channel) {
-    if (channel === "whatsapp") return "WhatsApp";
-    if (channel === "telegram") return "Telegram";
-    if (channel === "messenger") return "Messenger";
-    if (channel === "voice") return "Voice";
-    return "Web Chat";
-  }
-
-  function statusLabel(status) {
-    if (status === "new") return "New";
-    if (status === "pending") return "Pending";
-    if (status === "human") return "Human";
-    if (status === "closed") return "Closed";
-    return "Open";
-  }
-
-  function initials(customer) {
-    const name = customer?.name || "C";
-
-    return name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join("");
-  }
-
   return (
-    <div className="page conversations-page">
-      <div className="conversation-toolbar">
+    <div className="conversation-workspace">
+
+      <div className="conversation-topbar">
         <div>
-          <div className="eyebrow">CUSTOMER COMMUNICATIONS</div>
           <h2>Conversations</h2>
-          <p>
-            Manage and review your customer conversations.
-          </p>
+          <p>Manage customer conversations, agents and AI assistance.</p>
         </div>
 
-        <button
-          className="primary"
-          onClick={() => setShowNew(true)}
-        >
-          + New conversation
-        </button>
+        <div className="conversation-top-actions">
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => setShowProfile((v) => !v)}
+          >
+            {showProfile ? "Hide profile" : "Show profile"}
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: "10px 14px",
-            borderRadius: 10,
-            background: "rgba(220,38,38,.10)",
-            color: "#dc2626",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
       <div className="conversation-layout">
-        <section className="card conversation-list">
-          <div className="conversation-list-head">
-            <div className="conversation-search">
-              <span>⌕</span>
 
-              <input
-                type="text"
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-                placeholder="Search conversations..."
-              />
+        <aside className="conversation-list-panel">
 
-              {search && (
-                <button
-                  type="button"
-                  className="clear-search"
-                  onClick={() => setSearch("")}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            <div className="conversation-filters">
-              {[
-                ["all", "All"],
-                ["new", "New"],
-                ["open", "Open"],
-                ["pending", "Pending"],
-                ["human", "Human"],
-                ["closed", "Closed"],
-              ].map(([value, label]) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={
-                    filter === value
-                      ? "filter active"
-                      : "filter"
-                  }
-                  onClick={() => setFilter(value)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          <div className="conversation-search">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search conversations..."
+            />
           </div>
 
-          <div className="conversation-count">
-            <span>
-              {loading
-                ? "Loading..."
-                : `${conversations.length} conversations`}
-            </span>
-
-            <span>Latest activity</span>
+          <div className="conversation-filters">
+            {[
+              ["all", "All"],
+              ["new", "New"],
+              ["open", "Open"],
+              ["pending", "Pending"],
+              ["human", "Human"],
+              ["closed", "Resolved"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={filter === value ? "filter active" : "filter"}
+                onClick={() => setFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
-          <div className="conversation-items">
-            {conversations.map((item) => {
-              const customer = item.customer || {};
-              const last = item.lastMessage;
+          <div className="conversation-list">
+
+            {loading && (
+              <div className="empty-state">
+                Loading conversations...
+              </div>
+            )}
+
+            {!loading && !conversations.length && (
+              <div className="empty-state">
+                No conversations found.
+              </div>
+            )}
+
+            {conversations.map((conversation) => {
+              const customer = conversation.customer || {};
+              const active = selectedId === conversation.id;
 
               return (
                 <button
+                  key={conversation.id}
                   type="button"
-                  key={item.id}
                   className={
-                    selectedId === item.id
-                      ? "conversation-item selected"
+                    active
+                      ? "conversation-item active"
                       : "conversation-item"
                   }
-                  onClick={() =>
-                    setSelectedId(item.id)
-                  }
+                  onClick={() => setSelectedId(conversation.id)}
                 >
                   <div className="conversation-avatar">
-                    {initials(customer)}
+                    {(customer.name || "?").charAt(0).toUpperCase()}
                   </div>
 
-                  <div className="conversation-main">
-                    <div className="conversation-name-row">
-                      <strong>
-                        {customer.name || "Customer"}
-                      </strong>
-
-                      <small>
-                        {formatTime(
-                          item.updatedAt
-                        )}
-                      </small>
+                  <div className="conversation-item-body">
+                    <div className="conversation-item-head">
+                      <strong>{customer.name || "Unknown"}</strong>
+                      <span>{formatTime(conversation.updatedAt)}</span>
                     </div>
 
-                    <b>
-                      {last?.text ||
+                    <div className="conversation-item-preview">
+                      {conversation.lastMessage?.text ||
                         "No messages yet"}
-                    </b>
+                    </div>
 
-                    <p>
-                      {customer.phone || ""}
-                    </p>
+                    <div className="conversation-item-meta">
+                      <span>{channelLabel(conversation.channel)}</span>
 
-                    <div className="conversation-meta">
-                      <span className="channel-tag">
-                        ◉ {channelLabel(item.channel)}
+                      <span className={statusClass(conversation.status)}>
+                        {statusLabel(conversation.status)}
                       </span>
-
-                      <span
-                        className={
-                          item.status === "closed"
-                            ? "mini-status resolved"
-                            : "mini-status open"
-                        }
-                      >
-                        {statusLabel(item.status)}
-                      </span>
-
-                      {item.unread > 0 && (
-                        <span className="unread">
-                          {item.unread}
-                        </span>
-                      )}
                     </div>
                   </div>
                 </button>
               );
             })}
 
-            {!loading &&
-              conversations.length === 0 && (
-                <div className="empty-conversations">
-                  <div>⌕</div>
-                  <strong>
-                    No conversations found
-                  </strong>
-                  <p>
-                    Try another search or create a
-                    new conversation.
-                  </p>
-                </div>
-              )}
           </div>
-        </section>
+        </aside>
 
-        {selected && (
-          <section className="card conversation-detail">
-            <div className="detail-head">
-              <div className="detail-customer">
-                <div className="detail-avatar">
-                  {initials(selected.customer)}
+        <main className="conversation-main">
+
+          {!selected ? (
+            <div className="conversation-empty">
+              <div className="empty-icon">◌</div>
+              <h3>Select a conversation</h3>
+              <p>Choose a customer conversation to start.</p>
+            </div>
+          ) : (
+            <>
+              <div className="conversation-header">
+
+                <div className="conversation-customer-title">
+                  <div className="large-avatar">
+                    {(selected.customer?.name || "?")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
+
+                  <div>
+                    <h3>
+                      {selected.customer?.name || "Unknown customer"}
+                    </h3>
+
+                    <div className="conversation-channel">
+                      {channelLabel(selected.channel)}
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <strong>
-                    {selected.customer?.name ||
-                      "Customer"}
-                  </strong>
+                <div className="conversation-actions">
 
-                  <span>
-                    {channelLabel(
-                      selected.channel
-                    )}
-                  </span>
+                  <select
+                    value={selected.assignedTo || "AI"}
+                    onChange={async (e) => {
+                      try {
+                        await updateConversation({
+                          assignedTo: e.target.value,
+                          status:
+                            e.target.value === "AI"
+                              ? "open"
+                              : "human",
+                        });
+                      } catch (err) {
+                        setError(err.message);
+                      }
+                    }}
+                  >
+                    {agents.map((agent) => (
+                      <option key={agent.id} value={agent.id}>
+                        {agent.type === "ai" ? "🤖 " : "👤 "}
+                        {agent.name}
+                      </option>
+                    ))}
+                  </select>
 
-                  <small>
-                    {selected.customer?.phone ||
-                      ""}
-                  </small>
+                  {selected.status !== "closed" && (
+                    <button
+                      className="secondary"
+                      type="button"
+                      onClick={() =>
+                        updateConversation({
+                          status: "closed",
+                        })
+                      }
+                    >
+                      ✓ Resolve
+                    </button>
+                  )}
+
+                  {selected.status === "closed" && (
+                    <button
+                      className="secondary"
+                      type="button"
+                      onClick={() =>
+                        updateConversation({
+                          status: "open",
+                        })
+                      }
+                    >
+                      Reopen
+                    </button>
+                  )}
+
+                  <button
+                    className="primary"
+                    type="button"
+                    onClick={() =>
+                      updateConversation({
+                        assignedTo:
+                          selected.assignedTo === "AI"
+                            ? "agent-001"
+                            : "AI",
+                        status:
+                          selected.assignedTo === "AI"
+                            ? "human"
+                            : "open",
+                      })
+                    }
+                  >
+                    {selected.assignedTo === "AI"
+                      ? "Pass to Human"
+                      : "Return to AI"}
+                  </button>
+
                 </div>
               </div>
 
-              <div className="detail-actions">
-                <button
-                  type="button"
-                  className="icon-action"
-                  onClick={() =>
-                    setSearch(
-                      selected.customer?.name || ""
-                    )
-                  }
-                >
-                  ⌕
-                </button>
+              <div className="message-area">
 
-                <button
-                  type="button"
-                  className="icon-action"
-                  onClick={changeStatus}
-                  title="Change status"
-                >
-                  ⋯
-                </button>
-              </div>
-            </div>
-
-            <div className="detail-info">
-              <span>
-                ◉ {channelLabel(selected.channel)}
-              </span>
-
-              <span>•</span>
-
-              <button
-                type="button"
-                className="status-button"
-                onClick={changeStatus}
-              >
-                {statusLabel(selected.status)}
-              </button>
-
-              {selected.channel === "whatsapp" && (
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() =>
-                    openWhatsApp(
-                      selected.customer?.phone
-                    )
-                  }
-                >
-                  Open WhatsApp
-                </button>
-              )}
-            </div>
-
-            <div className="conversation-messages">
-              {(selected.messages || []).map(
-                (msg) => (
+                {(selected.messages || []).map((msg) => (
                   <div
                     key={msg.id}
                     className={
                       msg.sender === "customer"
-                        ? "message-row customer"
-                        : "message-row assistant"
+                        ? "message customer"
+                        : "message agent"
                     }
                   >
                     <div className="message-bubble">
-                      <strong>
-                        {msg.sender === "customer"
-                          ? selected.customer
-                              ?.name || "Customer"
-                          : msg.sender === "ai"
-                          ? "Wassal AI"
-                          : "Human Agent"}
-                      </strong>
-
-                      <p>{msg.text}</p>
+                      <div>{msg.text}</div>
 
                       <small>
-                        {formatTime(msg.createdAt)}
+                        {msg.sender === "customer"
+                          ? "Customer"
+                          : msg.sender === "ai"
+                          ? "WASSAL AI"
+                          : "Agent"}{" "}
+                        · {formatTime(msg.createdAt)}
                       </small>
                     </div>
                   </div>
-                )
-              )}
-            </div>
+                ))}
 
-            <div className="conversation-composer">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) =>
-                  setMessage(e.target.value)
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder="Write a message..."
-              />
-
-              <button
-                type="button"
-                className="primary send-button"
-                onClick={sendMessage}
-                disabled={
-                  !message.trim() || sending
-                }
-              >
-                {sending ? "Sending..." : "Send"}
-              </button>
-            </div>
-          </section>
-        )}
-      </div>
-
-      {showNew && (
-        <div
-          className="conversation-modal-overlay"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowNew(false);
-            }
-          }}
-        >
-          <div className="conversation-modal">
-            <div className="modal-header">
-              <div>
-                <div className="eyebrow">
-                  CUSTOMER COMMUNICATIONS
-                </div>
-
-                <h3>New conversation</h3>
               </div>
 
-              <button
-                type="button"
-                className="icon-action"
-                onClick={() =>
-                  setShowNew(false)
-                }
-              >
-                ×
-              </button>
-            </div>
+              <div className="composer-area">
 
-            <label>
-              Customer name
+                <div className="quick-replies">
+                  <div className="quick-title">
+                    Quick Replies
+                  </div>
 
-              <input
-                autoFocus
-                type="text"
-                value={newForm.name}
-                onChange={(e) =>
-                  setNewForm({
-                    ...newForm,
-                    name: e.target.value,
-                  })
-                }
-                placeholder="Enter customer name"
-              />
-            </label>
+                  <div className="quick-buttons">
+                    {quickReplies.map((reply) => (
+                      <button
+                        key={reply.id}
+                        type="button"
+                        onClick={() => useQuickReply(reply.text)}
+                      >
+                        {reply.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            <label>
-              Phone number
+                <div className="copilot-box">
+                  <div>
+                    <strong>🤖 AI Copilot</strong>
+                    <span>
+                      Suggested response for your agent
+                    </span>
+                  </div>
 
-              <input
-                type="tel"
-                value={newForm.phone}
-                onChange={(e) =>
-                  setNewForm({
-                    ...newForm,
-                    phone: e.target.value,
-                  })
-                }
-                placeholder="+961..."
-              />
-            </label>
+                  <button
+                    type="button"
+                    onClick={generateCopilot}
+                  >
+                    Suggest
+                  </button>
 
-            <label>
-              Channel
+                  {copilot && (
+                    <button
+                      type="button"
+                      className="copilot-suggestion"
+                      onClick={() => {
+                        setMessage(copilot);
+                        setCopilot("");
+                      }}
+                    >
+                      {copilot}
+                    </button>
+                  )}
+                </div>
 
-              <select
-                value={newForm.channel}
-                onChange={(e) =>
-                  setNewForm({
-                    ...newForm,
-                    channel: e.target.value,
-                  })
-                }
-              >
-                <option value="web">
-                  Web Chat
-                </option>
+                <div className="composer">
 
-                <option value="whatsapp">
-                  WhatsApp
-                </option>
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Write a reply..."
+                    rows={3}
+                    onKeyDown={(e) => {
+                      if (
+                        e.key === "Enter" &&
+                        !e.shiftKey
+                      ) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                  />
 
-                <option value="telegram">
-                  Telegram
-                </option>
+                  <button
+                    className="primary send-button"
+                    type="button"
+                    disabled={
+                      sending || !message.trim()
+                    }
+                    onClick={() => sendMessage()}
+                  >
+                    {sending ? "Sending..." : "Send"}
+                  </button>
 
-                <option value="messenger">
-                  Messenger
-                </option>
-              </select>
-            </label>
+                </div>
 
-            <label>
-              First message
+              </div>
+            </>
+          )}
+        </main>
 
-              <textarea
-                value={newForm.message}
-                onChange={(e) =>
-                  setNewForm({
-                    ...newForm,
-                    message: e.target.value,
-                  })
-                }
-                placeholder="Write the first message..."
-                rows={4}
-              />
-            </label>
+        {showProfile && (
+          <aside className="customer-panel">
 
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="secondary"
-                onClick={() =>
-                  setShowNew(false)
-                }
-              >
-                Cancel
-              </button>
+            {selected ? (
+              <>
+                <div className="profile-header">
+                  <div className="profile-avatar">
+                    {(selected.customer?.name || "?")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
 
-              <button
-                type="button"
-                className="primary"
-                onClick={createConversation}
-              >
-                Create conversation
-              </button>
-            </div>
-          </div>
+                  <h3>
+                    {selected.customer?.name ||
+                      "Unknown customer"}
+                  </h3>
+
+                  <span>
+                    {channelLabel(selected.channel)}
+                  </span>
+                </div>
+
+                <div className="profile-section">
+                  <label>Phone</label>
+                  <div>
+                    {selected.customer?.phone || "—"}
+                  </div>
+                </div>
+
+                <div className="profile-section">
+                  <label>Email</label>
+                  <div>
+                    {selected.customer?.email || "—"}
+                  </div>
+                </div>
+
+                <div className="profile-section">
+                  <label>Assigned Agent</label>
+
+                  <select
+                    value={selected.assignedTo || "AI"}
+                    onChange={(e) =>
+                      updateConversation({
+                        assignedTo: e.target.value,
+                        status:
+                          e.target.value === "AI"
+                            ? "open"
+                            : "human",
+                      })
+                    }
+                  >
+                    {agents.map((agent) => (
+                      <option
+                        key={agent.id}
+                        value={agent.id}
+                      >
+                        {agent.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="profile-section">
+                  <label>Tags</label>
+
+                  <div className="tags">
+                    {(selected.customer?.tags || []).map(
+                      (tag) => (
+                        <span key={tag}>{tag}</span>
+                      )
+                    )}
+
+                    {!selected.customer?.tags?.length && (
+                      <span>Lead</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="profile-section">
+                  <label>Notes</label>
+
+                  <textarea
+                    defaultValue={
+                      selected.customer?.notes || ""
+                    }
+                    placeholder="Customer notes..."
+                    onBlur={(e) =>
+                      updateConversation({
+                        customer: {
+                          notes: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="profile-section">
+                  <label>Status</label>
+
+                  <div className={statusClass(selected.status)}>
+                    {statusLabel(selected.status)}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="empty-state">
+                Customer profile
+              </div>
+            )}
+
+          </aside>
+        )}
+
+      </div>
+
+      {error && (
+        <div className="conversation-error">
+          {error}
         </div>
       )}
 
       <style jsx>{`
-        .conversation-messages {
+        .conversation-workspace {
+          width: 100%;
+        }
+
+        .conversation-topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 18px;
+        }
+
+        .conversation-topbar h2 {
+          margin: 0;
+          font-size: 28px;
+        }
+
+        .conversation-topbar p {
+          margin: 6px 0 0;
+          opacity: .65;
+        }
+
+        .conversation-layout {
+          display: grid;
+          grid-template-columns: 300px minmax(0, 1fr) 280px;
+          min-height: 680px;
+          border: 1px solid rgba(255,255,255,.09);
+          border-radius: 18px;
+          overflow: hidden;
+          background: rgba(255,255,255,.025);
+        }
+
+        .conversation-list-panel,
+        .customer-panel {
+          background: rgba(255,255,255,.025);
+        }
+
+        .conversation-list-panel {
+          border-right: 1px solid rgba(255,255,255,.08);
+        }
+
+        .customer-panel {
+          border-left: 1px solid rgba(255,255,255,.08);
+          padding: 20px;
+        }
+
+        .conversation-search {
+          padding: 14px;
+        }
+
+        .conversation-search input,
+        .composer textarea,
+        .profile-section textarea,
+        .profile-section select,
+        .conversation-actions select {
+          width: 100%;
+          border: 1px solid rgba(255,255,255,.12);
+          background: rgba(0,0,0,.18);
+          color: inherit;
+          border-radius: 10px;
+          padding: 10px 12px;
+          outline: none;
+        }
+
+        .conversation-filters {
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          padding: 0 12px 12px;
+        }
+
+        .filter,
+        .quick-buttons button {
+          border: 1px solid rgba(255,255,255,.1);
+          background: transparent;
+          color: inherit;
+          border-radius: 999px;
+          padding: 7px 10px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .filter.active {
+          background: rgba(255,255,255,.12);
+        }
+
+        .conversation-item {
+          width: 100%;
+          display: flex;
+          gap: 10px;
+          padding: 14px;
+          border: 0;
+          border-top: 1px solid rgba(255,255,255,.06);
+          background: transparent;
+          color: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .conversation-item:hover,
+        .conversation-item.active {
+          background: rgba(255,255,255,.07);
+        }
+
+        .conversation-avatar,
+        .large-avatar,
+        .profile-avatar {
+          flex: 0 0 auto;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          font-weight: 800;
+          background: rgba(255,255,255,.12);
+        }
+
+        .conversation-avatar {
+          width: 38px;
+          height: 38px;
+        }
+
+        .conversation-item-body {
+          min-width: 0;
           flex: 1;
-          min-height: 260px;
-          max-height: 460px;
-          overflow-y: auto;
-          padding: 18px;
+        }
+
+        .conversation-item-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .conversation-item-head span,
+        .conversation-item-preview,
+        .conversation-channel {
+          opacity: .6;
+          font-size: 12px;
+        }
+
+        .conversation-item-preview {
+          margin: 5px 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .conversation-item-meta {
+          display: flex;
+          justify-content: space-between;
+          gap: 5px;
+          font-size: 11px;
+        }
+
+        .conversation-main {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          min-width: 0;
         }
 
-        .message-row {
+        .conversation-header {
           display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          padding: 16px 18px;
+          border-bottom: 1px solid rgba(255,255,255,.08);
         }
 
-        .message-row.customer {
+        .conversation-customer-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .conversation-customer-title h3 {
+          margin: 0 0 4px;
+        }
+
+        .large-avatar {
+          width: 44px;
+          height: 44px;
+        }
+
+        .conversation-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .conversation-actions button,
+        .conversation-actions select {
+          width: auto;
+        }
+
+        .primary,
+        .secondary {
+          border-radius: 9px;
+          padding: 9px 13px;
+          cursor: pointer;
+        }
+
+        .primary {
+          border: 0;
+          background: #fff;
+          color: #111;
+          font-weight: 700;
+        }
+
+        .secondary {
+          border: 1px solid rgba(255,255,255,.13);
+          background: transparent;
+          color: inherit;
+        }
+
+        .message-area {
+          flex: 1;
+          overflow-y: auto;
+          padding: 22px;
+        }
+
+        .message {
+          display: flex;
+          margin-bottom: 12px;
+        }
+
+        .message.customer {
           justify-content: flex-start;
         }
 
-        .message-row.assistant {
+        .message.agent {
           justify-content: flex-end;
         }
 
         .message-bubble {
-          max-width: 78%;
-          padding: 12px 15px;
+          max-width: 72%;
+          padding: 11px 14px;
           border-radius: 14px;
-          background: var(
-            --surface-2,
-            #f4f6f8
-          );
+          background: rgba(255,255,255,.08);
         }
 
-        .message-row.assistant
-          .message-bubble {
-          background: var(
-            --accent,
-            #111827
-          );
-          color: white;
-        }
-
-        .message-bubble strong {
-          display: block;
-          font-size: 12px;
-          margin-bottom: 4px;
-        }
-
-        .message-bubble p {
-          margin: 0 0 5px;
-          line-height: 1.45;
+        .message.agent .message-bubble {
+          background: rgba(255,255,255,.14);
         }
 
         .message-bubble small {
-          opacity: 0.7;
+          display: block;
+          margin-top: 5px;
+          opacity: .5;
           font-size: 10px;
         }
 
-        .conversation-composer {
-          display: flex;
-          gap: 10px;
+        .composer-area {
+          border-top: 1px solid rgba(255,255,255,.08);
           padding: 14px;
-          border-top: 1px solid
-            rgba(127, 127, 127, 0.18);
         }
 
-        .conversation-composer input {
-          flex: 1;
-          min-width: 0;
-          padding: 12px 14px;
-          border-radius: 10px;
-          border: 1px solid
-            rgba(127, 127, 127, 0.3);
-          background: transparent;
-          color: inherit;
-          outline: none;
-        }
-
-        .send-button:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-        }
-
-        .conversation-modal-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 9999;
-          background: rgba(0, 0, 0, 0.55);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-
-        .conversation-modal {
-          width: min(520px, 100%);
-          max-height: 90vh;
-          overflow-y: auto;
-          background: var(--card, white);
-          color: inherit;
-          border-radius: 18px;
-          padding: 22px;
-          box-shadow: 0 25px 80px
-            rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          margin-bottom: 18px;
-        }
-
-        .conversation-modal h3 {
-          margin: 4px 0 0;
-        }
-
-        .conversation-modal label {
+        .quick-title,
+        .profile-section label {
           display: block;
-          font-size: 13px;
-          font-weight: 600;
-          margin-top: 13px;
+          font-size: 11px;
+          opacity: .55;
+          margin-bottom: 7px;
         }
 
-        .conversation-modal input,
-        .conversation-modal select,
-        .conversation-modal textarea {
+        .quick-buttons {
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          margin-bottom: 12px;
+        }
+
+        .copilot-box {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+          padding: 10px;
+          margin-bottom: 10px;
+          border: 1px solid rgba(255,255,255,.1);
+          border-radius: 12px;
+        }
+
+        .copilot-box > div:first-child {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-width: 150px;
+        }
+
+        .copilot-box span {
+          opacity: .55;
+          font-size: 11px;
+        }
+
+        .copilot-box button {
+          border: 0;
+          border-radius: 8px;
+          padding: 7px 10px;
+          cursor: pointer;
+        }
+
+        .copilot-suggestion {
           width: 100%;
-          box-sizing: border-box;
-          margin-top: 7px;
-          padding: 12px 13px;
-          border-radius: 10px;
-          border: 1px solid
-            rgba(127, 127, 127, 0.3);
-          background: transparent;
+          text-align: left;
+          background: rgba(255,255,255,.07);
           color: inherit;
-          font: inherit;
-          outline: none;
         }
 
-        .conversation-modal textarea {
+        .composer {
+          display: flex;
+          gap: 8px;
+          align-items: flex-end;
+        }
+
+        .composer textarea {
+          resize: vertical;
+          flex: 1;
+        }
+
+        .send-button {
+          min-width: 75px;
+        }
+
+        .profile-header {
+          text-align: center;
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .profile-avatar {
+          width: 62px;
+          height: 62px;
+          margin: 0 auto 10px;
+          font-size: 22px;
+        }
+
+        .profile-header h3 {
+          margin: 0 0 5px;
+        }
+
+        .profile-header span {
+          opacity: .55;
+          font-size: 12px;
+        }
+
+        .profile-section {
+          padding: 15px 0;
+          border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .profile-section textarea {
+          min-height: 75px;
           resize: vertical;
         }
 
-        .modal-actions {
+        .tags {
           display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 20px;
+          flex-wrap: wrap;
+          gap: 6px;
         }
 
-        .clear-search {
-          border: 0;
-          background: transparent;
-          cursor: pointer;
-          font-size: 20px;
-          opacity: 0.65;
+        .tags span {
+          padding: 5px 8px;
+          border-radius: 999px;
+          background: rgba(255,255,255,.1);
+          font-size: 11px;
         }
 
-        .status-button {
-          border: 0;
-          background: transparent;
-          color: inherit;
-          cursor: pointer;
-          font: inherit;
+        .status {
+          display: inline-block;
+          padding: 5px 8px;
+          border-radius: 999px;
+          font-size: 11px;
         }
 
-        @media (max-width: 700px) {
-          .conversation-composer {
+        .status.open {
+          background: rgba(50,180,100,.15);
+        }
+
+        .status.pending {
+          background: rgba(220,170,50,.15);
+        }
+
+        .status.human {
+          background: rgba(80,140,220,.15);
+        }
+
+        .status.closed {
+          background: rgba(150,150,150,.15);
+        }
+
+        .conversation-empty,
+        .empty-state {
+          display: grid;
+          place-items: center;
+          text-align: center;
+          min-height: 200px;
+          opacity: .65;
+          padding: 20px;
+        }
+
+        .empty-icon {
+          font-size: 40px;
+        }
+
+        .conversation-error {
+          margin-top: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: rgba(220,70,70,.12);
+        }
+
+        @media (max-width: 1100px) {
+          .conversation-layout {
+            grid-template-columns: 280px minmax(0,1fr);
+          }
+
+          .customer-panel {
+            display: none;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .conversation-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .conversation-list-panel {
+            display: none;
+          }
+
+          .conversation-header {
             flex-direction: column;
+            align-items: stretch;
           }
 
-          .conversation-composer button {
-            width: 100%;
+          .conversation-actions {
+            flex-wrap: wrap;
           }
 
-          .message-bubble {
-            max-width: 90%;
+          .conversation-actions button,
+          .conversation-actions select {
+            flex: 1;
           }
         }
       `}</style>
