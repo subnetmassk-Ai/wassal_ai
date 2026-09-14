@@ -16,23 +16,152 @@ const navItems = [
   "Admin",
 ];
 
+const Icon = ({ name, size = 20 }) => {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
+  };
+
+  const paths = {
+    Dashboard: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </>
+    ),
+
+    "AI Agent": (
+      <>
+        <path d="M12 3v3" />
+        <path d="M12 18v3" />
+        <path d="M3 12h3" />
+        <path d="M18 12h3" />
+        <path d="m5.6 5.6 2.1 2.1" />
+        <path d="m16.3 16.3 2.1 2.1" />
+        <path d="m18.4 5.6-2.1 2.1" />
+        <path d="m7.7 16.3-2.1 2.1" />
+        <circle cx="12" cy="12" r="4.2" />
+      </>
+    ),
+
+    Conversations: (
+      <>
+        <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.5 8.5 0 0 1-3.5-.8L4 20l1.8-3.7A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z" />
+        <path d="M8 11h.01" />
+        <path d="M12 11h.01" />
+        <path d="M16 11h.01" />
+      </>
+    ),
+
+    Contacts: (
+      <>
+        <circle cx="12" cy="8" r="3" />
+        <path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5" />
+      </>
+    ),
+
+    Calendar: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M3 10h18" />
+        <path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01" />
+      </>
+    ),
+
+    Location: (
+      <>
+        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </>
+    ),
+
+    Files: (
+      <>
+        <path d="M5 3h9l5 5v13H5z" />
+        <path d="M14 3v6h5" />
+        <path d="M8 13h8M8 17h6" />
+      </>
+    ),
+
+    Web: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" />
+      </>
+    ),
+
+    Tasks: (
+      <>
+        <rect x="4" y="3" width="16" height="18" rx="2" />
+        <path d="m8 9 1.5 1.5L12 8" />
+        <path d="M14 9h3M8 14l1.5 1.5L12 13M14 14h3" />
+      </>
+    ),
+
+    Voice: (
+      <>
+        <rect x="9" y="3" width="6" height="11" rx="3" />
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" />
+      </>
+    ),
+
+    Settings: (
+      <>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.1h-2.6V20a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.6-1H6v-2h.4A1.7 1.7 0 0 0 8 11a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6v-.1H15V6a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v2H21a1.7 1.7 0 0 0-1.6 1Z" />
+      </>
+    ),
+
+    Admin: (
+      <>
+        <path d="M12 3 20 6v5c0 5-3.3 8.5-8 10-4.7-1.5-8-5-8-10V6l8-3Z" />
+        <path d="m9 12 2 2 4-4" />
+      </>
+    ),
+  };
+
+  if (name === "WhatsApp") {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M12.04 2A9.94 9.94 0 0 0 3 16.14L2 22l5.99-1.57A10 10 0 1 0 12.04 2Zm0 18.25a8.23 8.23 0 0 1-4.19-1.14l-.3-.18-3.56.93.95-3.47-.2-.32A8.24 8.24 0 1 1 12.04 20.25Zm4.52-6.17c-.25-.13-1.48-.73-1.71-.81-.23-.08-.4-.13-.57.13-.17.25-.65.81-.8.98-.15.17-.3.19-.55.06-.25-.13-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.39.11-.52.12-.12.25-.3.38-.45.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.45-.06-.13-.57-1.37-.78-1.88-.21-.5-.42-.43-.57-.44h-.49c-.17 0-.45.06-.68.32-.23.25-.89.87-.89 2.12s.91 2.46 1.04 2.63c.13.17 1.79 2.73 4.34 3.83.61.26 1.08.41 1.45.52.61.19 1.17.16 1.61.1.49-.07 1.48-.61 1.69-1.2.21-.59.21-1.09.15-1.2-.06-.11-.23-.17-.48-.3Z"
+        />
+      </svg>
+    );
+  }
+
+  return <svg {...common}>{paths[name]}</svg>;
+};
+
 const icons = {
-  Dashboard: "⌂",
-  "AI Agent": "✦",
-  Conversations: "◌",
-  Contacts: "♙",
-  "WhatsApp": "📱",
-  WhatsApp: "◉",
-  Calendar: "📅",
-  Location: "📍",
-  Files: "📁",
-  Web: "🌐",
-  Tasks: "📝",
-  Voice: "◖",
-  Analytics: "◒",
-  Billing: "$",
-  Settings: "⚙",
-  Admin: "♜",
+  Dashboard: "Dashboard",
+  "AI Agent": "AI Agent",
+  Conversations: "Conversations",
+  Contacts: "Contacts",
+  WhatsApp: "WhatsApp",
+  Calendar: "Calendar",
+  Location: "Location",
+  Files: "Files",
+  Web: "Web",
+  Tasks: "Tasks",
+  Voice: "Voice",
+  Settings: "Settings",
+  Admin: "Admin",
 };
 
 export default function Home() {
@@ -70,7 +199,7 @@ export default function Home() {
               className={active === item ? "nav-item active" : "nav-item"}
               onClick={() => setActive(item)}
             >
-              <span className="nav-icon">{icons[item]}</span>
+              <span className="nav-icon"><Icon name={icons[item]} size={19} /></span>
               <span>{item}</span>
             </button>
           ))}
@@ -1487,7 +1616,9 @@ function Dashboard({ agentOn, setAgentOn, setActive }) {
             <button
               className="secondary"
               type="button"
-              onClick={() => setActive("AI Agent")}
+              onClick={() => {
+  window.open("/agent", "_self");
+}}
             >
               Open Assistant →
             </button>
@@ -3557,6 +3688,168 @@ function CallChatPage() {
     setAgentReply("");
 
     try {
+      // WASSAL CONTACT MEMORY
+      // ContactsPage already stores contacts in localStorage.
+      let savedContacts = [];
+
+      try {
+        const raw = localStorage.getItem("wassal_contacts");
+        const parsed = raw ? JSON.parse(raw) : [];
+        savedContacts = Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn("Could not read WASSAL contacts:", error);
+      }
+
+      // Normalize Lebanese / international numbers
+      const normalizeAgentNumber = (value) => {
+        let n = String(value || "").replace(/[^\d+]/g, "");
+
+        if (n.startsWith("+961")) return n;
+        if (n.startsWith("00961")) return "+" + n.slice(2);
+
+        if (/^0\d{7,8}$/.test(n)) {
+          return "+961" + n.slice(1);
+        }
+
+        if (/^\d{7,8}$/.test(n)) {
+          return "+961" + n;
+        }
+
+        return n;
+      };
+
+      const command = agentCommand.trim();
+
+      /*
+       * Examples understood directly by WASSAL:
+       *
+       * ابعت لأحمد: مرحبا كيفك
+       * ابعت لاحمد مرحبا كيفك
+       * اكتب لأحمد: وينك؟
+       * أرسل إلى أحمد: مرحبا
+       * send to Ahmad: hello
+       */
+
+      let contactName = "";
+      let commandMessage = "";
+
+      const arabicMatch = command.match(
+        /(?:ابعت|أبعت|ارسل|أرسل|اكتب|ابعث|بعت)\s+(?:ل|لـ|الى|إلى)\s+([^:،,]+?)\s*(?::|،|,)\s*(.+)$/i
+      );
+
+      const arabicMatchNoColon = command.match(
+        /(?:ابعت|أبعت|ارسل|أرسل|اكتب|ابعث|بعت)\s+(?:ل|لـ|الى|إلى)\s+(.+?)\s+(.+)$/i
+      );
+
+      const englishMatch = command.match(
+        /(?:send|message|text)\s+(?:to)\s+([^:,-]+?)\s*(?::|,|-)\s*(.+)$/i
+      );
+
+      if (arabicMatch) {
+        contactName = arabicMatch[1].trim();
+        commandMessage = arabicMatch[2].trim();
+      } else if (arabicMatchNoColon) {
+        contactName = arabicMatchNoColon[1].trim();
+        commandMessage = arabicMatchNoColon[2].trim();
+      } else if (englishMatch) {
+        contactName = englishMatch[1].trim();
+        commandMessage = englishMatch[2].trim();
+      }
+
+      // If the command doesn't contain a message, keep the manually
+      // entered WhatsApp message as a fallback.
+      if (!commandMessage && message.trim()) {
+        commandMessage = message.trim();
+      }
+
+      // Remove common Arabic articles / command noise from the name.
+      contactName = contactName
+        .replace(/^(ال|لل)/, "")
+        .replace(/[؟?!.,،:]+$/, "")
+        .trim();
+
+      // Find contact by name.
+      let matchedContact = null;
+
+      if (contactName) {
+        const wanted = contactName
+          .toLowerCase()
+          .replace(/[إأآا]/g, "ا")
+          .replace(/ة/g, "ه")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        matchedContact = savedContacts.find((contact) => {
+          const name = String(contact?.name || "")
+            .toLowerCase()
+            .replace(/[إأآا]/g, "ا")
+            .replace(/ة/g, "ه")
+            .replace(/\s+/g, " ")
+            .trim();
+
+          return (
+            name === wanted ||
+            name.includes(wanted) ||
+            wanted.includes(name)
+          );
+        });
+      }
+
+      // Contact was requested but not found.
+      if (contactName && !matchedContact) {
+        setAgentReply(
+          "❌ ما لقيت \"" +
+          contactName +
+          "\" ضمن Contacts في WASSAL.\n\n" +
+          "افتح Contacts وأضف الاسم والرقم، وبعدها جرّب الأمر من جديد."
+        );
+        setAgentReady(false);
+        return;
+      }
+
+      // If a contact was found, connect the operation to its stored number.
+      if (matchedContact) {
+        const contactNumber = normalizeAgentNumber(matchedContact.phone);
+
+        if (!contactNumber) {
+          setAgentReply(
+            "❌ لقيت " +
+            matchedContact.name +
+            " لكن ما في رقم هاتف محفوظ لهذا Contact."
+          );
+          setAgentReady(false);
+          return;
+        }
+
+        setNumber(contactNumber);
+
+        if (commandMessage) {
+          setMessage(commandMessage);
+        }
+
+        setAgentReply(
+          "👤 Contact: " +
+          matchedContact.name +
+          "\n" +
+          "📱 Number: " +
+          contactNumber +
+          "\n" +
+          "💬 Message: " +
+          (commandMessage || "No message") +
+          "\n\n" +
+          "WASSAL AI جهّز العملية. لم يتم إرسال أي شيء بعد.\n" +
+          "اضغط SEND / EXECUTE فقط إذا كنت موافقًا."
+        );
+
+        setAgentReady(Boolean(commandMessage));
+        return;
+      }
+
+      /*
+       * No contact name was detected.
+       * Keep the existing AI preparation behavior for commands
+       * that don't explicitly target a saved contact.
+       */
       const response = await fetch("/api/agent", {
         method: "POST",
         headers: {
@@ -3585,6 +3878,7 @@ function CallChatPage() {
 
       setAgentReply(reply);
       setAgentReady(true);
+
     } catch (error) {
       console.error(error);
 
@@ -3954,13 +4248,35 @@ function AIAgentModule() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "مرحباً! أنا WASSAL AI 🤖 كيف فيني ساعدك اليوم؟",
+      text: "Hello! I'm WASSAL AI. How can I help you today?",
     },
   ]);
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
 
-  async function sendMessage() {
-    const text = message.trim();
+  function speakReply(text) {
+    try {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(String(text || ""));
+      utterance.lang = /[\u0600-\u06FF]/.test(String(text || ""))
+        ? "ar-LB"
+        : "en-US";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.warn("Voice reply error:", error);
+    }
+  }
+
+  async function sendMessage(textOverride = null, speak = false) {
+    const text = String(
+      textOverride !== null ? textOverride : message
+    ).trim();
+
     if (!text || loading) return;
 
     setMessages((prev) => [...prev, { role: "user", text }]);
@@ -3970,34 +4286,118 @@ function AIAgentModule() {
     try {
       const response = await fetch("/api/agent", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
 
       const data = await response.json();
 
+      const reply =
+        data?.reply ||
+        data?.error ||
+        "I couldn't complete that request right now.";
+
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          text:
-            data?.reply ||
-            data?.error ||
-            "ما قدرت أنفذ الطلب حالياً.",
-        },
+        { role: "assistant", text: reply },
       ]);
-    } catch {
+
+      if (speak) speakReply(reply);
+    } catch (error) {
+      console.error(error);
+
+      const reply = "There was a connection error with WASSAL AI.";
+
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          text: "صار خطأ بالاتصال مع WASSAL AI.",
-        },
+        { role: "assistant", text: reply },
       ]);
+
+      if (speak) speakReply(reply);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function stopVoice() {
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+
+    recognitionRef.current = null;
+    setListening(false);
+  }
+
+  function startVoice() {
+    if (typeof window === "undefined") return;
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        "Voice recognition is not supported in this browser. Please use Chrome on Android."
+      );
+      return;
+    }
+
+    if (listening) {
+      stopVoice();
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+
+      recognition.lang = "ar-LB";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognitionRef.current = recognition;
+
+      recognition.onstart = () => {
+        setListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript =
+          event.results?.[0]?.[0]?.transcript?.trim();
+
+        if (transcript) {
+          setMessage(transcript);
+          sendMessage(transcript, true);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("WASSAL voice error:", event.error);
+
+        if (
+          event.error === "not-allowed" ||
+          event.error === "service-not-allowed"
+        ) {
+          alert("Please allow microphone access for WASSAL AI.");
+        }
+
+        setListening(false);
+        recognitionRef.current = null;
+      };
+
+      recognition.onend = () => {
+        setListening(false);
+
+        if (recognitionRef.current === recognition) {
+          recognitionRef.current = null;
+        }
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error("Could not start voice:", error);
+      setListening(false);
+      recognitionRef.current = null;
     }
   }
 
@@ -4008,16 +4408,28 @@ function AIAgentModule() {
     }
   }
 
+  useEffect(() => {
+    return () => {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
   return (
     <div className="page">
       <div
         className="card"
         style={{
-          maxWidth: "1000px",
+          maxWidth: "1100px",
           margin: "0 auto",
           width: "100%",
-          height: "calc(100vh - 190px)",
-          minHeight: "500px",
+          height: "calc(100vh - 165px)",
+          minHeight: "560px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -4026,9 +4438,12 @@ function AIAgentModule() {
         <div className="card-head">
           <div>
             <h3>WASSAL AI Agent</h3>
-            <p>Arabic & English · AI Assistant</p>
+            <p>AI Assistant · Text & Voice</p>
           </div>
-          <span className="status">LIVE</span>
+
+          <span className="status">
+            {listening ? "LISTENING" : "ONLINE"}
+          </span>
         </div>
 
         <div
@@ -4046,9 +4461,7 @@ function AIAgentModule() {
               key={index}
               style={{
                 alignSelf:
-                  item.role === "user"
-                    ? "flex-end"
-                    : "flex-start",
+                  item.role === "user" ? "flex-end" : "flex-start",
                 maxWidth: "78%",
                 padding: "12px 15px",
                 borderRadius: "14px",
@@ -4075,62 +4488,119 @@ function AIAgentModule() {
                 opacity: 0.7,
               }}
             >
-              WASSAL AI يفكر...
+              WASSAL AI is thinking...
             </div>
           )}
         </div>
 
         <div
           style={{
-            display: "flex",
-            gap: "8px",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) 52px 100px",
+            gap: "10px",
             paddingTop: "14px",
-            borderTop:
-              "1px solid rgba(255,255,255,.07)",
+            borderTop: "1px solid rgba(255,255,255,.07)",
+            alignItems: "center",
           }}
         >
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="اكتب رسالتك هنا..."
+            placeholder="Message WASSAL AI..."
             rows={2}
             disabled={loading}
             style={{
-              flex: 1,
+              width: "100%",
+              minHeight: "52px",
               resize: "none",
-              padding: "12px 14px",
+              padding: "13px 14px",
               borderRadius: "12px",
-              border:
-                "1px solid rgba(255,255,255,.1)",
-              background:
-                "rgba(255,255,255,.04)",
+              border: "1px solid rgba(255,255,255,.1)",
+              background: "rgba(255,255,255,.04)",
               color: "inherit",
               outline: "none",
               fontFamily: "inherit",
+              boxSizing: "border-box",
             }}
           />
 
           <button
-            className="primary"
-            onClick={sendMessage}
-            disabled={
-              loading || !message.trim()
-            }
-            style={{ minWidth: "110px" }}
+            type="button"
+            onClick={startVoice}
+            disabled={loading}
+            aria-label={listening ? "Stop voice" : "Start voice"}
+            title={listening ? "Stop voice" : "Voice"}
+            style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "14px",
+              border: listening
+                ? "1px solid rgba(255,90,90,.5)"
+                : "1px solid rgba(255,255,255,.1)",
+              background: listening
+                ? "rgba(255,70,70,.14)"
+                : "rgba(255,255,255,.055)",
+              color: "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.5 : 1,
+            }}
           >
-            {loading ? "..." : "إرسال ↗"}
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              {listening ? (
+                <rect x="7" y="7" width="10" height="10" rx="2" />
+              ) : (
+                <>
+                  <rect x="9" y="3" width="6" height="11" rx="3" />
+                  <path d="M5 11a7 7 0 0 0 14 0" />
+                  <path d="M12 18v3" />
+                  <path d="M9 21h6" />
+                </>
+              )}
+            </svg>
           </button>
+
+          <button
+            className="primary"
+            type="button"
+            onClick={() => sendMessage()}
+            disabled={loading || !message.trim()}
+            style={{
+              minWidth: "100px",
+              height: "52px",
+            }}
+          >
+            {loading ? "..." : "Send →"}
+          </button>
+        </div>
+
+        <div
+          style={{
+            fontSize: "12px",
+            opacity: 0.5,
+            paddingTop: "9px",
+            textAlign: "right",
+          }}
+        >
+          Enter to send · Voice to talk
         </div>
       </div>
     </div>
   );
 }
-
-
-/* =========================
-   CALENDAR
-========================= */
 
 function CalendarModule() {
   const [events, setEvents] = useState([]);
