@@ -408,6 +408,8 @@ export default function Home() {
             setAgentOn={setAgentOn}
             setActive={setActive}
           />
+        ) : active === "AI Agent" ? (
+          <AIAgentModule />
         ) : active === "Conversations" ? (
           <ConversationsPage />
         ) : active === "WhatsApp" ? (
@@ -1613,18 +1615,13 @@ function Dashboard({ agentOn, setAgentOn, setActive }) {
               <p>Arabic & English · Friendly · Professional</p>
             </div>
 
-            <a
-        className="secondary"
-        href="/agent"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textDecoration: "none",
-        }}
-      >
-        Open Assistant →
-      </a>
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => setActive("AI Agent")}
+            >
+              Open Assistant →
+            </button>
           </div>
         </div>
 
@@ -4255,42 +4252,59 @@ function AIAgentModule() {
     },
   ]);
   const [loading, setLoading] = useState(false);
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef(null);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
 
   function speakReply(text) {
     try {
       if (!("speechSynthesis" in window)) return;
+
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(String(text || ""));
-      utterance.lang = /[\u0600-\u06FF]/.test(String(text || ""))
+      const value = String(text || "");
+      const utterance = new SpeechSynthesisUtterance(value);
+
+      utterance.lang = /[\u0600-\u06FF]/.test(value)
         ? "ar-LB"
         : "en-US";
-      utterance.rate = 1;
+
+      utterance.rate = 0.95;
       utterance.pitch = 1;
+      utterance.volume = 1;
+
       window.speechSynthesis.speak(utterance);
     } catch (error) {
-      console.warn("Voice reply error:", error);
+      console.warn("WASSAL speech error:", error);
     }
   }
 
-  async function sendMessage(textOverride = null, speak = false) {
+  async function sendMessage(textOverride = null) {
     const text = String(
       textOverride !== null ? textOverride : message
     ).trim();
 
     if (!text || loading) return;
 
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        text,
+      },
+    ]);
+
     setMessage("");
     setLoading(true);
 
     try {
       const response = await fetch("/api/agent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: text,
+        }),
       });
 
       const data = await response.json();
@@ -4302,50 +4316,74 @@ function AIAgentModule() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: reply },
+        {
+          role: "assistant",
+          text: reply,
+        },
       ]);
 
-      if (speak) speakReply(reply);
+      if (voiceOn) {
+        speakReply(reply);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("WASSAL AI request error:", error);
 
-      const reply = "There was a connection error with WASSAL AI.";
+      const reply =
+        "I couldn't connect to WASSAL AI right now.";
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: reply },
+        {
+          role: "assistant",
+          text: reply,
+        },
       ]);
 
-      if (speak) speakReply(reply);
+      if (voiceOn) {
+        speakReply(reply);
+      }
     } finally {
       setLoading(false);
     }
   }
 
   function stopVoice() {
+    window.__wassalAgentVoiceOn = false;
+
+    if (window.__wassalAgentRecognition) {
+      try {
+        window.__wassalAgentRecognition.stop();
+      } catch {}
+    }
+
+    window.__wassalAgentRecognition = null;
+
     try {
-      recognitionRef.current?.stop();
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     } catch {}
 
-    recognitionRef.current = null;
-    setListening(false);
+    setVoiceOn(false);
   }
 
   function startVoice() {
     if (typeof window === "undefined") return;
+
+    setVoiceError("");
 
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert(
-        "Voice recognition is not supported in this browser. Please use Chrome on Android."
+      setVoiceError(
+        "Voice recognition is not supported by this browser. Please use Chrome on Android."
       );
       return;
     }
 
-    if (listening) {
+    if (window.__wassalAgentRecognition) {
       stopVoice();
       return;
     }
@@ -4354,74 +4392,90 @@ function AIAgentModule() {
       const recognition = new SpeechRecognition();
 
       recognition.lang = "ar-LB";
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
 
-      recognitionRef.current = recognition;
+      window.__wassalAgentVoiceOn = true;
+      window.__wassalAgentRecognition = recognition;
 
       recognition.onstart = () => {
-        setListening(true);
+        setVoiceOn(true);
+        setVoiceError("");
       };
 
       recognition.onresult = (event) => {
-        const transcript =
-          event.results?.[0]?.[0]?.transcript?.trim();
+        for (
+          let i = event.resultIndex;
+          i < event.results.length;
+          i++
+        ) {
+          const result = event.results[i];
 
-        if (transcript) {
-          setMessage(transcript);
-          sendMessage(transcript, true);
+          if (!result.isFinal) continue;
+
+          const transcript =
+            result[0]?.transcript?.trim();
+
+          if (transcript) {
+            sendMessage(transcript);
+          }
         }
       };
 
       recognition.onerror = (event) => {
-        console.warn("WASSAL voice error:", event.error);
+        console.warn(
+          "WASSAL voice recognition error:",
+          event.error
+        );
 
         if (
           event.error === "not-allowed" ||
           event.error === "service-not-allowed"
         ) {
-          alert("Please allow microphone access for WASSAL AI.");
-        }
+          window.__wassalAgentVoiceOn = false;
+          window.__wassalAgentRecognition = null;
+          setVoiceOn(false);
 
-        setListening(false);
-        recognitionRef.current = null;
+          setVoiceError(
+            "Microphone permission is required. Please allow microphone access."
+          );
+        }
       };
 
       recognition.onend = () => {
-        setListening(false);
-
-        if (recognitionRef.current === recognition) {
-          recognitionRef.current = null;
+        if (
+          window.__wassalAgentVoiceOn &&
+          window.__wassalAgentRecognition === recognition
+        ) {
+          try {
+            recognition.start();
+          } catch {}
+        } else {
+          setVoiceOn(false);
         }
       };
 
       recognition.start();
     } catch (error) {
-      console.error("Could not start voice:", error);
-      setListening(false);
-      recognitionRef.current = null;
+      console.error("Could not start WASSAL voice:", error);
+
+      window.__wassalAgentVoiceOn = false;
+      window.__wassalAgentRecognition = null;
+
+      setVoiceOn(false);
+      setVoiceError(
+        "Voice could not be started on this browser."
+      );
     }
   }
 
-  function handleKeyDown(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  function handleKeyDown(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       sendMessage();
     }
   }
-
-  useEffect(() => {
-    return () => {
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
 
   return (
     <div className="page">
@@ -4429,66 +4483,138 @@ function AIAgentModule() {
         className="card"
         style={{
           maxWidth: "1100px",
-          margin: "0 auto",
           width: "100%",
+          margin: "0 auto",
           height: "calc(100vh - 165px)",
           minHeight: "560px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
+          borderRadius: "22px",
+          position: "relative",
         }}
       >
-        <div className="card-head">
+        <div
+          className="card-head"
+          style={{
+            padding: "18px 20px",
+            alignItems: "center",
+            flexShrink: 0,
+          }}
+        >
           <div>
-            <h3>WASSAL AI Agent</h3>
-            <p>AI Assistant · Text & Voice</p>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: "20px",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              WASSAL AI Agent
+            </h3>
+
+            <p
+              style={{
+                margin: "5px 0 0",
+                opacity: 0.6,
+                fontSize: "13px",
+              }}
+            >
+              AI Assistant · Text & Voice
+            </p>
           </div>
 
-          <span className="status">
-            {listening ? "LISTENING" : "ONLINE"}
-          </span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "7px 11px",
+              borderRadius: "999px",
+              border: "1px solid rgba(255,255,255,.08)",
+              background: voiceOn
+                ? "rgba(80,220,150,.10)"
+                : "rgba(255,255,255,.035)",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: ".04em",
+            }}
+          >
+            <span
+              style={{
+                width: "7px",
+                height: "7px",
+                borderRadius: "50%",
+                background: voiceOn
+                  ? "#39d98a"
+                  : "#6b7280",
+                boxShadow: voiceOn
+                  ? "0 0 12px rgba(57,217,138,.8)"
+                  : "none",
+              }}
+            />
+            {voiceOn ? "LISTENING" : "ONLINE"}
+          </div>
         </div>
 
         <div
           style={{
             flex: 1,
+            minHeight: 0,
             overflowY: "auto",
-            padding: "20px 4px",
+            padding: "18px 20px 24px",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "14px",
           }}
         >
-          {messages.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                alignSelf:
-                  item.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "78%",
-                padding: "12px 15px",
-                borderRadius: "14px",
-                background:
-                  item.role === "user"
-                    ? "rgba(120,140,255,.16)"
-                    : "rgba(255,255,255,.055)",
-                border: "1px solid rgba(255,255,255,.07)",
-                lineHeight: 1.55,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {item.text}
-            </div>
-          ))}
+          {messages.map((item, index) => {
+            const user = item.role === "user";
+
+            return (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent: user
+                    ? "flex-end"
+                    : "flex-start",
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: "78%",
+                    padding: "12px 15px",
+                    borderRadius: user
+                      ? "17px 17px 5px 17px"
+                      : "17px 17px 17px 5px",
+                    background: user
+                      ? "rgba(110,130,255,.16)"
+                      : "rgba(255,255,255,.055)",
+                    border:
+                      "1px solid rgba(255,255,255,.075)",
+                    lineHeight: 1.55,
+                    whiteSpace: "pre-wrap",
+                    fontSize: "14px",
+                  }}
+                >
+                  {item.text}
+                </div>
+              </div>
+            );
+          })}
 
           {loading && (
             <div
               style={{
                 alignSelf: "flex-start",
-                padding: "12px 15px",
-                borderRadius: "14px",
-                background: "rgba(255,255,255,.055)",
-                opacity: 0.7,
+                padding: "11px 14px",
+                borderRadius: "16px 16px 16px 5px",
+                background: "rgba(255,255,255,.045)",
+                border:
+                  "1px solid rgba(255,255,255,.06)",
+                fontSize: "13px",
+                opacity: 0.65,
               }}
             >
               WASSAL AI is thinking...
@@ -4496,109 +4622,185 @@ function AIAgentModule() {
           )}
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) 52px 100px",
-            gap: "10px",
-            paddingTop: "14px",
-            borderTop: "1px solid rgba(255,255,255,.07)",
-            alignItems: "center",
-          }}
-        >
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Message WASSAL AI..."
-            rows={2}
-            disabled={loading}
+        {voiceError && (
+          <div
             style={{
-              width: "100%",
-              minHeight: "52px",
-              resize: "none",
-              padding: "13px 14px",
+              margin: "0 20px 10px",
+              padding: "10px 12px",
               borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,.1)",
-              background: "rgba(255,255,255,.04)",
-              color: "inherit",
-              outline: "none",
-              fontFamily: "inherit",
-              boxSizing: "border-box",
-            }}
-          />
-
-          <button
-            type="button"
-            onClick={startVoice}
-            disabled={loading}
-            aria-label={listening ? "Stop voice" : "Start voice"}
-            title={listening ? "Stop voice" : "Voice"}
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              border: listening
-                ? "1px solid rgba(255,90,90,.5)"
-                : "1px solid rgba(255,255,255,.1)",
-              background: listening
-                ? "rgba(255,70,70,.14)"
-                : "rgba(255,255,255,.055)",
-              color: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.5 : 1,
+              background: "rgba(255,80,80,.08)",
+              border:
+                "1px solid rgba(255,100,100,.18)",
+              color: "#ffb4b4",
+              fontSize: "12px",
+              lineHeight: 1.4,
             }}
           >
-            <svg
-              width="21"
-              height="21"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+            {voiceError}
+          </div>
+        )}
+
+        <div
+          style={{
+            padding: "12px 16px 16px",
+            borderTop:
+              "1px solid rgba(255,255,255,.07)",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,.035))",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              gap: "10px",
+            }}
+          >
+            <textarea
+              value={message}
+              onChange={(event) =>
+                setMessage(event.target.value)
+              }
+              onKeyDown={handleKeyDown}
+              placeholder="Message WASSAL AI..."
+              rows={2}
+              disabled={loading}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                resize: "none",
+                padding: "13px 15px",
+                borderRadius: "15px",
+                border:
+                  "1px solid rgba(255,255,255,.10)",
+                background:
+                  "rgba(255,255,255,.045)",
+                color: "inherit",
+                outline: "none",
+                fontFamily: "inherit",
+                fontSize: "14px",
+              }}
+            />
+
+            <button
+              type="button"
+              className="primary"
+              onClick={() => sendMessage()}
+              disabled={
+                loading || !message.trim()
+              }
+              style={{
+                minWidth: "82px",
+                height: "48px",
+                borderRadius: "14px",
+                fontWeight: 700,
+              }}
             >
-              {listening ? (
-                <rect x="7" y="7" width="10" height="10" rx="2" />
+              {loading ? "..." : "Send"}
+            </button>
+
+            <button
+              type="button"
+              onClick={startVoice}
+              disabled={loading}
+              title={
+                voiceOn
+                  ? "Stop voice"
+                  : "Start voice"
+              }
+              aria-label={
+                voiceOn
+                  ? "Stop voice"
+                  : "Start voice"
+              }
+              style={{
+                width: "50px",
+                height: "50px",
+                minWidth: "50px",
+                borderRadius: "50%",
+                border: voiceOn
+                  ? "1px solid rgba(70,220,150,.45)"
+                  : "1px solid rgba(255,255,255,.12)",
+                background: voiceOn
+                  ? "rgba(60,210,140,.14)"
+                  : "rgba(255,255,255,.055)",
+                color: "inherit",
+                display: "grid",
+                placeItems: "center",
+                cursor: loading
+                  ? "not-allowed"
+                  : "pointer",
+                transition:
+                  "transform .18s ease, background .18s ease, border .18s ease",
+                boxShadow: voiceOn
+                  ? "0 0 22px rgba(60,210,140,.14)"
+                  : "none",
+              }}
+            >
+              {voiceOn ? (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="7"
+                    y="7"
+                    width="10"
+                    height="10"
+                    rx="2"
+                  />
+                </svg>
               ) : (
-                <>
-                  <rect x="9" y="3" width="6" height="11" rx="3" />
+                <svg
+                  width="21"
+                  height="21"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect
+                    x="9"
+                    y="3"
+                    width="6"
+                    height="11"
+                    rx="3"
+                  />
                   <path d="M5 11a7 7 0 0 0 14 0" />
                   <path d="M12 18v3" />
                   <path d="M9 21h6" />
-                </>
+                </svg>
               )}
-            </svg>
-          </button>
+            </button>
+          </div>
 
-          <button
-            className="primary"
-            type="button"
-            onClick={() => sendMessage()}
-            disabled={loading || !message.trim()}
+          <div
             style={{
-              minWidth: "100px",
-              height: "52px",
+              marginTop: "8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              fontSize: "11px",
+              opacity: 0.42,
             }}
           >
-            {loading ? "..." : "Send →"}
-          </button>
-        </div>
+            <span>
+              Enter to send · Shift + Enter for a new line
+            </span>
 
-        <div
-          style={{
-            fontSize: "12px",
-            opacity: 0.5,
-            paddingTop: "9px",
-            textAlign: "right",
-          }}
-        >
-          Enter to send · Voice to talk
+            <span>
+              {voiceOn
+                ? "Voice mode active"
+                : "Voice ready"}
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -1613,18 +1613,13 @@ function Dashboard({ agentOn, setAgentOn, setActive }) {
               <p>Arabic & English · Friendly · Professional</p>
             </div>
 
-            <a
-        className="secondary"
-        href="/agent"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textDecoration: "none",
-        }}
-      >
-        Open Assistant →
-      </a>
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => setActive("AI Agent")}
+            >
+              Open Assistant →
+            </button>
           </div>
         </div>
 
@@ -4251,16 +4246,16 @@ function AIAgentModule() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hello! I'm WASSAL AI. How can I help you today?",
+      text: "مرحباً! أنا WASSAL AI 🤖 كيف فيني ساعدك اليوم؟",
     },
   ]);
   const [loading, setLoading] = useState(false);
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef(null);
+  const [voiceOn, setVoiceOn] = useState(false);
 
-  function speakReply(text) {
+  const speakReply = (text) => {
     try {
       if (!("speechSynthesis" in window)) return;
+
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(String(text || ""));
@@ -4269,27 +4264,34 @@ function AIAgentModule() {
         : "en-US";
       utterance.rate = 1;
       utterance.pitch = 1;
+
       window.speechSynthesis.speak(utterance);
     } catch (error) {
       console.warn("Voice reply error:", error);
     }
-  }
+  };
 
-  async function sendMessage(textOverride = null, speak = false) {
+  async function sendMessage(textOverride = null) {
     const text = String(
       textOverride !== null ? textOverride : message
     ).trim();
 
     if (!text || loading) return;
 
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text },
+    ]);
+
     setMessage("");
     setLoading(true);
 
     try {
       const response = await fetch("/api/agent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ message: text }),
       });
 
@@ -4298,37 +4300,28 @@ function AIAgentModule() {
       const reply =
         data?.reply ||
         data?.error ||
-        "I couldn't complete that request right now.";
+        "ما قدرت أنفذ الطلب حالياً.";
 
       setMessages((prev) => [
         ...prev,
         { role: "assistant", text: reply },
       ]);
 
-      if (speak) speakReply(reply);
+      if (voiceOn) speakReply(reply);
     } catch (error) {
       console.error(error);
 
-      const reply = "There was a connection error with WASSAL AI.";
+      const reply = "صار خطأ بالاتصال مع WASSAL AI.";
 
       setMessages((prev) => [
         ...prev,
         { role: "assistant", text: reply },
       ]);
 
-      if (speak) speakReply(reply);
+      if (voiceOn) speakReply(reply);
     } finally {
       setLoading(false);
     }
-  }
-
-  function stopVoice() {
-    try {
-      recognitionRef.current?.stop();
-    } catch {}
-
-    recognitionRef.current = null;
-    setListening(false);
   }
 
   function startVoice() {
@@ -4340,13 +4333,20 @@ function AIAgentModule() {
 
     if (!SpeechRecognition) {
       alert(
-        "Voice recognition is not supported in this browser. Please use Chrome on Android."
+        "المتصفح لا يدعم المحادثة الصوتية. جرّب Chrome على Android."
       );
       return;
     }
 
-    if (listening) {
-      stopVoice();
+    if (window.__wassalAgentRecognition) {
+      window.__wassalAgentVoiceOn = false;
+
+      try {
+        window.__wassalAgentRecognition.stop();
+      } catch {}
+
+      window.__wassalAgentRecognition = null;
+      setVoiceOn(false);
       return;
     }
 
@@ -4354,23 +4354,27 @@ function AIAgentModule() {
       const recognition = new SpeechRecognition();
 
       recognition.lang = "ar-LB";
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
 
-      recognitionRef.current = recognition;
+      window.__wassalAgentVoiceOn = true;
+      window.__wassalAgentRecognition = recognition;
 
       recognition.onstart = () => {
-        setListening(true);
+        setVoiceOn(true);
       };
 
       recognition.onresult = (event) => {
-        const transcript =
-          event.results?.[0]?.[0]?.transcript?.trim();
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (!event.results[i].isFinal) continue;
 
-        if (transcript) {
-          setMessage(transcript);
-          sendMessage(transcript, true);
+          const transcript =
+            event.results[i][0]?.transcript?.trim();
+
+          if (transcript) {
+            sendMessage(transcript);
+          }
         }
       };
 
@@ -4381,26 +4385,35 @@ function AIAgentModule() {
           event.error === "not-allowed" ||
           event.error === "service-not-allowed"
         ) {
-          alert("Please allow microphone access for WASSAL AI.");
-        }
+          window.__wassalAgentVoiceOn = false;
+          window.__wassalAgentRecognition = null;
+          setVoiceOn(false);
 
-        setListening(false);
-        recognitionRef.current = null;
+          alert(
+            "اسمح للمتصفح باستخدام الميكروفون حتى تعمل المحادثة الصوتية."
+          );
+        }
       };
 
       recognition.onend = () => {
-        setListening(false);
-
-        if (recognitionRef.current === recognition) {
-          recognitionRef.current = null;
+        if (
+          window.__wassalAgentVoiceOn &&
+          window.__wassalAgentRecognition === recognition
+        ) {
+          try {
+            recognition.start();
+          } catch {}
+        } else {
+          setVoiceOn(false);
         }
       };
 
       recognition.start();
     } catch (error) {
       console.error("Could not start voice:", error);
-      setListening(false);
-      recognitionRef.current = null;
+      window.__wassalAgentVoiceOn = false;
+      window.__wassalAgentRecognition = null;
+      setVoiceOn(false);
     }
   }
 
@@ -4411,28 +4424,16 @@ function AIAgentModule() {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
   return (
     <div className="page">
       <div
         className="card"
         style={{
-          maxWidth: "1100px",
+          maxWidth: "1000px",
           margin: "0 auto",
           width: "100%",
-          height: "calc(100vh - 165px)",
-          minHeight: "560px",
+          height: "calc(100vh - 190px)",
+          minHeight: "500px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -4441,11 +4442,11 @@ function AIAgentModule() {
         <div className="card-head">
           <div>
             <h3>WASSAL AI Agent</h3>
-            <p>AI Assistant · Text & Voice</p>
+            <p>Arabic & English · AI Assistant</p>
           </div>
 
           <span className="status">
-            {listening ? "LISTENING" : "ONLINE"}
+            {voiceOn ? "🎙️ LISTENING" : "LIVE"}
           </span>
         </div>
 
@@ -4464,7 +4465,9 @@ function AIAgentModule() {
               key={index}
               style={{
                 alignSelf:
-                  item.role === "user" ? "flex-end" : "flex-start",
+                  item.role === "user"
+                    ? "flex-end"
+                    : "flex-start",
                 maxWidth: "78%",
                 padding: "12px 15px",
                 borderRadius: "14px",
@@ -4472,7 +4475,8 @@ function AIAgentModule() {
                   item.role === "user"
                     ? "rgba(120,140,255,.16)"
                     : "rgba(255,255,255,.055)",
-                border: "1px solid rgba(255,255,255,.07)",
+                border:
+                  "1px solid rgba(255,255,255,.07)",
                 lineHeight: 1.55,
                 whiteSpace: "pre-wrap",
               }}
@@ -4491,114 +4495,69 @@ function AIAgentModule() {
                 opacity: 0.7,
               }}
             >
-              WASSAL AI is thinking...
+              WASSAL AI يفكر...
             </div>
           )}
         </div>
 
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) 52px 100px",
-            gap: "10px",
+            display: "flex",
+            gap: "8px",
             paddingTop: "14px",
-            borderTop: "1px solid rgba(255,255,255,.07)",
-            alignItems: "center",
+            borderTop:
+              "1px solid rgba(255,255,255,.07)",
+            alignItems: "stretch",
           }}
         >
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message WASSAL AI..."
+            placeholder="اكتب رسالتك هنا..."
             rows={2}
             disabled={loading}
             style={{
-              width: "100%",
-              minHeight: "52px",
+              flex: 1,
               resize: "none",
-              padding: "13px 14px",
+              padding: "12px 14px",
               borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,.1)",
-              background: "rgba(255,255,255,.04)",
+              border:
+                "1px solid rgba(255,255,255,.1)",
+              background:
+                "rgba(255,255,255,.04)",
               color: "inherit",
               outline: "none",
               fontFamily: "inherit",
-              boxSizing: "border-box",
             }}
           />
 
           <button
-            type="button"
-            onClick={startVoice}
-            disabled={loading}
-            aria-label={listening ? "Stop voice" : "Start voice"}
-            title={listening ? "Stop voice" : "Voice"}
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              border: listening
-                ? "1px solid rgba(255,90,90,.5)"
-                : "1px solid rgba(255,255,255,.1)",
-              background: listening
-                ? "rgba(255,70,70,.14)"
-                : "rgba(255,255,255,.055)",
-              color: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.5 : 1,
-            }}
+            className="primary"
+            onClick={() => sendMessage()}
+            disabled={loading || !message.trim()}
+            style={{ minWidth: "100px" }}
           >
-            <svg
-              width="21"
-              height="21"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {listening ? (
-                <rect x="7" y="7" width="10" height="10" rx="2" />
-              ) : (
-                <>
-                  <rect x="9" y="3" width="6" height="11" rx="3" />
-                  <path d="M5 11a7 7 0 0 0 14 0" />
-                  <path d="M12 18v3" />
-                  <path d="M9 21h6" />
-                </>
-              )}
-            </svg>
+            {loading ? "..." : "إرسال ↗"}
           </button>
 
           <button
-            className="primary"
-            type="button"
-            onClick={() => sendMessage()}
-            disabled={loading || !message.trim()}
+            className="secondary-btn"
+            onClick={startVoice}
+            disabled={loading}
+            title={
+              voiceOn
+                ? "إيقاف المحادثة الصوتية"
+                : "بدء المحادثة الصوتية"
+            }
             style={{
-              minWidth: "100px",
-              height: "52px",
+              minWidth: "58px",
+              fontSize: "22px",
+              borderRadius: "12px",
             }}
           >
-            {loading ? "..." : "Send →"}
+            {voiceOn ? "⏹️" : "🎙️"}
           </button>
-        </div>
-
-        <div
-          style={{
-            fontSize: "12px",
-            opacity: 0.5,
-            paddingTop: "9px",
-            textAlign: "right",
-          }}
-        >
-          Enter to send · Voice to talk
         </div>
       </div>
     </div>

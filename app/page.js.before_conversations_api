@@ -16,152 +16,23 @@ const navItems = [
   "Admin",
 ];
 
-const Icon = ({ name, size = 20 }) => {
-  const common = {
-    width: size,
-    height: size,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    "aria-hidden": true,
-  };
-
-  const paths = {
-    Dashboard: (
-      <>
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </>
-    ),
-
-    "AI Agent": (
-      <>
-        <path d="M12 3v3" />
-        <path d="M12 18v3" />
-        <path d="M3 12h3" />
-        <path d="M18 12h3" />
-        <path d="m5.6 5.6 2.1 2.1" />
-        <path d="m16.3 16.3 2.1 2.1" />
-        <path d="m18.4 5.6-2.1 2.1" />
-        <path d="m7.7 16.3-2.1 2.1" />
-        <circle cx="12" cy="12" r="4.2" />
-      </>
-    ),
-
-    Conversations: (
-      <>
-        <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.5 8.5 0 0 1-3.5-.8L4 20l1.8-3.7A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z" />
-        <path d="M8 11h.01" />
-        <path d="M12 11h.01" />
-        <path d="M16 11h.01" />
-      </>
-    ),
-
-    Contacts: (
-      <>
-        <circle cx="12" cy="8" r="3" />
-        <path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5" />
-      </>
-    ),
-
-    Calendar: (
-      <>
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M16 3v4M8 3v4M3 10h18" />
-        <path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01" />
-      </>
-    ),
-
-    Location: (
-      <>
-        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-        <circle cx="12" cy="10" r="2.5" />
-      </>
-    ),
-
-    Files: (
-      <>
-        <path d="M5 3h9l5 5v13H5z" />
-        <path d="M14 3v6h5" />
-        <path d="M8 13h8M8 17h6" />
-      </>
-    ),
-
-    Web: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" />
-      </>
-    ),
-
-    Tasks: (
-      <>
-        <rect x="4" y="3" width="16" height="18" rx="2" />
-        <path d="m8 9 1.5 1.5L12 8" />
-        <path d="M14 9h3M8 14l1.5 1.5L12 13M14 14h3" />
-      </>
-    ),
-
-    Voice: (
-      <>
-        <rect x="9" y="3" width="6" height="11" rx="3" />
-        <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" />
-      </>
-    ),
-
-    Settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.1h-2.6V20a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.6-1H6v-2h.4A1.7 1.7 0 0 0 8 11a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6v-.1H15V6a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v2H21a1.7 1.7 0 0 0-1.6 1Z" />
-      </>
-    ),
-
-    Admin: (
-      <>
-        <path d="M12 3 20 6v5c0 5-3.3 8.5-8 10-4.7-1.5-8-5-8-10V6l8-3Z" />
-        <path d="m9 12 2 2 4-4" />
-      </>
-    ),
-  };
-
-  if (name === "WhatsApp") {
-    return (
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path
-          fill="currentColor"
-          d="M12.04 2A9.94 9.94 0 0 0 3 16.14L2 22l5.99-1.57A10 10 0 1 0 12.04 2Zm0 18.25a8.23 8.23 0 0 1-4.19-1.14l-.3-.18-3.56.93.95-3.47-.2-.32A8.24 8.24 0 1 1 12.04 20.25Zm4.52-6.17c-.25-.13-1.48-.73-1.71-.81-.23-.08-.4-.13-.57.13-.17.25-.65.81-.8.98-.15.17-.3.19-.55.06-.25-.13-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.15-.25-.02-.39.11-.52.12-.12.25-.3.38-.45.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.45-.06-.13-.57-1.37-.78-1.88-.21-.5-.42-.43-.57-.44h-.49c-.17 0-.45.06-.68.32-.23.25-.89.87-.89 2.12s.91 2.46 1.04 2.63c.13.17 1.79 2.73 4.34 3.83.61.26 1.08.41 1.45.52.61.19 1.17.16 1.61.1.49-.07 1.48-.61 1.69-1.2.21-.59.21-1.09.15-1.2-.06-.11-.23-.17-.48-.3Z"
-        />
-      </svg>
-    );
-  }
-
-  return <svg {...common}>{paths[name]}</svg>;
-};
-
 const icons = {
-  Dashboard: "Dashboard",
-  "AI Agent": "AI Agent",
-  Conversations: "Conversations",
-  Contacts: "Contacts",
-  WhatsApp: "WhatsApp",
-  Calendar: "Calendar",
-  Location: "Location",
-  Files: "Files",
-  Web: "Web",
-  Tasks: "Tasks",
-  Voice: "Voice",
-  Settings: "Settings",
-  Admin: "Admin",
+  Dashboard: "⌂",
+  "AI Agent": "✦",
+  Conversations: "◌",
+  Contacts: "♙",
+  "WhatsApp": "📱",
+  WhatsApp: "◉",
+  Calendar: "📅",
+  Location: "📍",
+  Files: "📁",
+  Web: "🌐",
+  Tasks: "📝",
+  Voice: "◖",
+  Analytics: "◒",
+  Billing: "$",
+  Settings: "⚙",
+  Admin: "♜",
 };
 
 export default function Home() {
@@ -199,7 +70,7 @@ export default function Home() {
               className={active === item ? "nav-item active" : "nav-item"}
               onClick={() => setActive(item)}
             >
-              <span className="nav-icon"><Icon name={icons[item]} size={19} /></span>
+              <span className="nav-icon">{icons[item]}</span>
               <span>{item}</span>
             </button>
           ))}
@@ -408,8 +279,6 @@ export default function Home() {
             setAgentOn={setAgentOn}
             setActive={setActive}
           />
-        ) : active === "Conversations" ? (
-          <ConversationsPage />
         ) : active === "WhatsApp" ? (
           <CallChatPage />
         ) : active === "Voice" ? (
@@ -1613,18 +1482,13 @@ function Dashboard({ agentOn, setAgentOn, setActive }) {
               <p>Arabic & English · Friendly · Professional</p>
             </div>
 
-            <a
-        className="secondary"
-        href="/agent"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textDecoration: "none",
-        }}
-      >
-        Open Assistant →
-      </a>
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => setActive("AI Agent")}
+            >
+              Open Assistant →
+            </button>
           </div>
         </div>
 
@@ -1718,1119 +1582,806 @@ function Conversation({ letter, name, time }) {
 
 
 function ConversationsPage() {
-  const [conversations, setConversations] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [selected, setSelected] = useState(null);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [agents, setAgents] = useState([]);
-  const [quickReplies, setQuickReplies] = useState([]);
-  const [copilot, setCopilot] = useState("");
-  const [showProfile, setShowProfile] = useState(true);
-  const [error, setError] = useState("");
+  const defaultConversations = [
+    {
+      id: 1,
+      name: "Ahmad",
+      phone: "+96170123456",
+      initial: "A",
+      subject: "Appointment inquiry",
+      message: "Hello, I would like to book an appointment.",
+      time: "1 min ago",
+      channel: "WhatsApp",
+      status: "Open",
+      unread: 2,
+      messages: [
+        { from: "customer", text: "Hello, I would like to book an appointment.", time: "09:41" },
+        { from: "assistant", text: "Hello Ahmad! 👋 Thanks for contacting us. How can I help you today?", time: "09:41" },
+      ],
+    },
+    {
+      id: 2,
+      name: "Sara",
+      phone: "+96171234567",
+      initial: "S",
+      subject: "Product question",
+      message: "Can you tell me more about this product?",
+      time: "3 min ago",
+      channel: "WhatsApp",
+      status: "Open",
+      unread: 1,
+      messages: [
+        { from: "customer", text: "Can you tell me more about this product?", time: "09:39" },
+      ],
+    },
+    {
+      id: 3,
+      name: "Omar",
+      phone: "+96176345678",
+      initial: "O",
+      subject: "Support request",
+      message: "I need help with my order.",
+      time: "7 min ago",
+      channel: "Voice",
+      status: "Resolved",
+      unread: 0,
+      messages: [
+        { from: "customer", text: "I need help with my order.", time: "09:35" },
+      ],
+    },
+    {
+      id: 4,
+      name: "Lina",
+      phone: "+96178456789",
+      initial: "L",
+      subject: "Order status",
+      message: "Where is my order?",
+      time: "18 min ago",
+      channel: "WhatsApp",
+      status: "Open",
+      unread: 3,
+      messages: [
+        { from: "customer", text: "Where is my order?", time: "09:24" },
+      ],
+    },
+    {
+      id: 5,
+      name: "Karim",
+      phone: "+96179567890",
+      initial: "K",
+      subject: "Pricing inquiry",
+      message: "What are your current prices?",
+      time: "32 min ago",
+      channel: "Voice",
+      status: "Resolved",
+      unread: 0,
+      messages: [
+        { from: "customer", text: "What are your current prices?", time: "09:10" },
+      ],
+    },
+  ];
 
-  async function loadMeta() {
+  const [conversations, setConversations] = useState(() => {
+    if (typeof window === "undefined") return defaultConversations;
     try {
-      const res = await fetch("/api/conversations/meta");
-      const data = await res.json();
-
-      setAgents(data.agents || []);
-      setQuickReplies(data.quickReplies || []);
+      const saved = localStorage.getItem("wassal_conversations");
+      const parsed = saved ? JSON.parse(saved) : null;
+      return Array.isArray(parsed) && parsed.length ? parsed : defaultConversations;
     } catch {
-      setAgents([]);
-      setQuickReplies([]);
+      return defaultConversations;
     }
-  }
+  });
 
-  async function loadConversations() {
-    try {
-      setLoading(true);
+  const [selectedId, setSelectedId] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+  const [message, setMessage] = useState("");
+  const [showNew, setShowNew] = useState(false);
 
-      const params = new URLSearchParams();
-
-      if (filter !== "all") {
-        params.set("status", filter);
-      }
-
-      if (search.trim()) {
-        params.set("search", search.trim());
-      }
-
-      const res = await fetch(
-        `/api/conversations?${params.toString()}`,
-        { cache: "no-store" }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to load conversations");
-      }
-
-      setConversations(data.conversations || []);
-      setError("");
-
-      if (!selectedId && data.conversations?.length) {
-        setSelectedId(data.conversations[0].id);
-      }
-    } catch (err) {
-      setError(err.message || "Failed to load conversations");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadConversation(id) {
-    if (!id) return;
-
-    try {
-      const res = await fetch(
-        `/api/conversations/${id}`,
-        { cache: "no-store" }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Conversation not found");
-      }
-
-      setSelected(data.conversation);
-    } catch (err) {
-      setError(err.message || "Failed to load conversation");
-    }
-  }
+  const [newForm, setNewForm] = useState({
+    name: "",
+    phone: "",
+    subject: "",
+    channel: "WhatsApp",
+    message: "",
+  });
 
   useEffect(() => {
-    loadMeta();
-  }, []);
-
-  useEffect(() => {
-    loadConversations();
-  }, [filter, search]);
-
-  useEffect(() => {
-    if (selectedId) {
-      loadConversation(selectedId);
-    }
-  }, [selectedId]);
-
-  async function updateConversation(payload) {
-    if (!selectedId) return;
-
-    const res = await fetch(
-      `/api/conversations/${selectedId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          "wassal_conversations",
+          JSON.stringify(conversations)
+        );
+      } catch (error) {
+        console.warn("Could not save conversations:", error);
       }
-    );
+    }
+  }, [conversations]);
 
-    const data = await res.json();
+  const filtered = conversations.filter((item) => {
+    const q = search.toLowerCase().trim();
 
-    if (!res.ok) {
-      throw new Error(data.error || "Update failed");
+    const matchesSearch =
+      !q ||
+      String(item.name || "").toLowerCase().includes(q) ||
+      String(item.phone || "").toLowerCase().includes(q) ||
+      String(item.subject || "").toLowerCase().includes(q) ||
+      String(item.message || "").toLowerCase().includes(q);
+
+    const matchesFilter =
+      filter === "All" ||
+      (filter === "Open" && item.status === "Open") ||
+      (filter === "Resolved" && item.status === "Resolved");
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const selected =
+    conversations.find((item) => item.id === selectedId) ||
+    filtered[0] ||
+    conversations[0] ||
+    null;
+
+  function sendMessage() {
+    const text = message.trim();
+
+    if (!text || !selected) return;
+
+    const now = new Date();
+    const time = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const updated = conversations.map((item) => {
+      if (item.id !== selected.id) return item;
+
+      const oldMessages = Array.isArray(item.messages)
+        ? item.messages
+        : [];
+
+      return {
+        ...item,
+        message: text,
+        time: "Just now",
+        unread: 0,
+        status: "Open",
+        messages: [
+          ...oldMessages,
+          { from: "assistant", text, time },
+        ],
+      };
+    });
+
+    setConversations(updated);
+    setMessage("");
+  }
+
+  function createConversation() {
+    const name = newForm.name.trim();
+    let phone = newForm.phone.trim();
+    phone = phone.replace(/[\s().-]/g, "");
+    if (phone.startsWith("00")) phone = "+" + phone.slice(2);
+    if (phone.startsWith("03") || phone.startsWith("70") || phone.startsWith("71") || phone.startsWith("76") || phone.startsWith("78") || phone.startsWith("79") || phone.startsWith("81")) {
+      phone = "+961" + phone;
+    } else if (/^3\d{7}$/.test(phone)) {
+      phone = "+961" + phone;
+    } else if (/^7\d{7}$/.test(phone) || /^8\d{7}$/.test(phone)) {
+      phone = "+961" + phone;
     }
 
-    setSelected(data.conversation);
-    await loadConversations();
-  }
+    const subject = newForm.subject.trim() || "New conversation";
+    const firstMessage = newForm.message.trim();
 
-  async function sendMessage(text = message) {
-    if (!selectedId || !text.trim() || sending) return;
-
-    try {
-      setSending(true);
-
-      const res = await fetch(
-        `/api/conversations/${selectedId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sender: selected?.assignedTo === "AI" ? "ai" : "agent",
-            text: text.trim(),
-            type: "text",
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Message failed");
-      }
-
-      setMessage("");
-      setSelected(data.conversation);
-      await loadConversations();
-    } catch (err) {
-      setError(err.message || "Could not send message");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  function useQuickReply(text) {
-    setMessage(text);
-  }
-
-  function generateCopilot() {
-    if (!selected) return;
-
-    const lastCustomerMessage =
-      [...(selected.messages || [])]
-        .reverse()
-        .find((m) => m.sender === "customer");
-
-    if (!lastCustomerMessage) {
-      setCopilot("مرحباً! كيف فينا نساعدك اليوم؟");
+    if (!name) {
+      alert("Please enter the customer name.");
       return;
     }
 
-    setCopilot(
-      "شكراً لتواصلك معنا. فهمت طلبك، وسأساعدك بالتأكد من التفاصيل ومتابعة الموضوع معك."
+    if (!phone) {
+      alert("Please enter the phone number.");
+      return;
+    }
+
+    const id = Date.now();
+    const initial = name.charAt(0).toUpperCase();
+
+    const newConversation = {
+      id,
+      name,
+      phone,
+      initial,
+      subject,
+      message: firstMessage || "New conversation",
+      time: "Just now",
+      channel: newForm.channel,
+      status: "Open",
+      unread: 0,
+      messages: firstMessage
+        ? [
+            {
+              from: "assistant",
+              text: firstMessage,
+              time: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            },
+          ]
+        : [],
+    };
+
+    setConversations((old) => [newConversation, ...old]);
+    setSelectedId(id);
+    setShowNew(false);
+
+    setNewForm({
+      name: "",
+      phone: "",
+      subject: "",
+      channel: "WhatsApp",
+      message: "",
+    });
+  }
+
+  function openWhatsApp(phone) {
+    const number = String(phone || "").replace(/\D/g, "");
+
+    if (!number) {
+      alert("Invalid phone number.");
+      return;
+    }
+
+    window.location.href = "https://wa.me/" + number;
+  }
+
+  function toggleStatus() {
+    if (!selected) return;
+
+    setConversations((old) =>
+      old.map((item) =>
+        item.id === selected.id
+          ? {
+              ...item,
+              status: item.status === "Open" ? "Resolved" : "Open",
+            }
+          : item
+      )
     );
   }
 
-  function channelLabel(channel) {
-    if (channel === "whatsapp") return "◉ WhatsApp";
-    if (channel === "instagram") return "◎ Instagram";
-    return "◌ Web Chat";
-  }
-
-  function statusLabel(status) {
-    if (status === "closed") return "Resolved";
-    if (status === "human") return "Human";
-    if (status === "pending") return "Pending";
-    if (status === "new") return "New";
-    return "Open";
-  }
-
-  function statusClass(status) {
-    if (status === "closed") return "status closed";
-    if (status === "human") return "status human";
-    if (status === "pending") return "status pending";
-    return "status open";
-  }
-
-  function formatTime(value) {
-    if (!value) return "";
-
-    try {
-      return new Date(value).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "";
-    }
-  }
-
   return (
-    <div className="conversation-workspace">
-
-      <div className="conversation-topbar">
+    <div className="page conversations-page">
+      <div className="conversation-toolbar">
         <div>
+          <div className="eyebrow">CUSTOMER COMMUNICATIONS</div>
           <h2>Conversations</h2>
-          <p>Manage customer conversations, agents and AI assistance.</p>
+          <p>Manage and review your customer conversations.</p>
         </div>
 
-        <div className="conversation-top-actions">
-          <button
-            className="secondary"
-            type="button"
-            onClick={() => setShowProfile((v) => !v)}
-          >
-            {showProfile ? "Hide profile" : "Show profile"}
-          </button>
-        </div>
+        <button
+          className="primary"
+          onClick={() => setShowNew(true)}
+        >
+          + New conversation
+        </button>
       </div>
 
       <div className="conversation-layout">
+        <section className="card conversation-list">
+          <div className="conversation-list-head">
+            <div className="conversation-search">
+              <span>⌕</span>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search conversations..."
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="clear-search"
+                  onClick={() => setSearch("")}
+                >
+                  ×
+                </button>
+              )}
+            </div>
 
-        <aside className="conversation-list-panel">
-
-          <div className="conversation-search">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search conversations..."
-            />
+            <div className="conversation-filters">
+              {["All", "Open", "Resolved"].map((item) => (
+                <button
+                  type="button"
+                  key={item}
+                  className={
+                    filter === item ? "filter active" : "filter"
+                  }
+                  onClick={() => setFilter(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="conversation-filters">
-            {[
-              ["all", "All"],
-              ["new", "New"],
-              ["open", "Open"],
-              ["pending", "Pending"],
-              ["human", "Human"],
-              ["closed", "Resolved"],
-            ].map(([value, label]) => (
+          <div className="conversation-count">
+            <span>{filtered.length} conversations</span>
+            <span>Latest activity</span>
+          </div>
+
+          <div className="conversation-items">
+            {filtered.map((item) => (
               <button
-                key={value}
                 type="button"
-                className={filter === value ? "filter active" : "filter"}
-                onClick={() => setFilter(value)}
+                key={item.id}
+                className={
+                  selectedId === item.id
+                    ? "conversation-item selected"
+                    : "conversation-item"
+                }
+                onClick={() => setSelectedId(item.id)}
               >
-                {label}
+                <div className="conversation-avatar">
+                  {item.initial}
+                </div>
+
+                <div className="conversation-main">
+                  <div className="conversation-name-row">
+                    <strong>{item.name}</strong>
+                    <small>{item.time}</small>
+                  </div>
+
+                  <b>{item.subject}</b>
+                  <p>{item.message}</p>
+
+                  <div className="conversation-meta">
+                    <span
+                      className={
+                        item.channel === "WhatsApp"
+                          ? "channel-tag whatsapp"
+                          : "channel-tag voice"
+                      }
+                    >
+                      {item.channel === "WhatsApp" ? "◉" : "◖"}{" "}
+                      {item.channel}
+                    </span>
+
+                    <span
+                      className={
+                        item.status === "Open"
+                          ? "mini-status open"
+                          : "mini-status resolved"
+                      }
+                    >
+                      {item.status}
+                    </span>
+
+                    {item.unread > 0 && (
+                      <span className="unread">
+                        {item.unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </button>
             ))}
+
+            {filtered.length === 0 && (
+              <div className="empty-conversations">
+                <div>⌕</div>
+                <strong>No conversations found</strong>
+                <p>Try another search or filter.</p>
+              </div>
+            )}
           </div>
+        </section>
 
-          <div className="conversation-list">
+        {selected && (
+          <section className="card conversation-detail">
+            <div className="detail-head">
+              <div className="detail-customer">
+                <div className="detail-avatar">
+                  {selected.initial}
+                </div>
 
-            {loading && (
-              <div className="empty-state">
-                Loading conversations...
+                <div>
+                  <strong>{selected.name}</strong>
+                  <span>{selected.subject}</span>
+                  <small>{selected.phone}</small>
+                </div>
               </div>
-            )}
 
-            {!loading && !conversations.length && (
-              <div className="empty-state">
-                No conversations found.
-              </div>
-            )}
-
-            {conversations.map((conversation) => {
-              const customer = conversation.customer || {};
-              const active = selectedId === conversation.id;
-
-              return (
+              <div className="detail-actions">
                 <button
-                  key={conversation.id}
                   type="button"
-                  className={
-                    active
-                      ? "conversation-item active"
-                      : "conversation-item"
-                  }
-                  onClick={() => setSelectedId(conversation.id)}
+                  className="icon-action"
+                  onClick={() => {
+                    const q = selected.name || "";
+                    setSearch(q);
+                  }}
                 >
-                  <div className="conversation-avatar">
-                    {(customer.name || "?").charAt(0).toUpperCase()}
-                  </div>
-
-                  <div className="conversation-item-body">
-                    <div className="conversation-item-head">
-                      <strong>{customer.name || "Unknown"}</strong>
-                      <span>{formatTime(conversation.updatedAt)}</span>
-                    </div>
-
-                    <div className="conversation-item-preview">
-                      {conversation.lastMessage?.text ||
-                        "No messages yet"}
-                    </div>
-
-                    <div className="conversation-item-meta">
-                      <span>{channelLabel(conversation.channel)}</span>
-
-                      <span className={statusClass(conversation.status)}>
-                        {statusLabel(conversation.status)}
-                      </span>
-                    </div>
-                  </div>
+                  ⌕
                 </button>
-              );
-            })}
 
-          </div>
-        </aside>
-
-        <main className="conversation-main">
-
-          {!selected ? (
-            <div className="conversation-empty">
-              <div className="empty-icon">◌</div>
-              <h3>Select a conversation</h3>
-              <p>Choose a customer conversation to start.</p>
+                <button
+                  type="button"
+                  className="icon-action"
+                  onClick={toggleStatus}
+                  title="Change status"
+                >
+                  ⋯
+                </button>
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="conversation-header">
 
-                <div className="conversation-customer-title">
-                  <div className="large-avatar">
-                    {(selected.customer?.name || "?")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
+            <div className="detail-info">
+              <span>
+                {selected.channel === "WhatsApp" ? "◉" : "◖"}{" "}
+                {selected.channel}
+              </span>
+              <span>•</span>
+              <button
+                type="button"
+                className="status-button"
+                onClick={toggleStatus}
+              >
+                {selected.status}
+              </button>
 
-                  <div>
-                    <h3>
-                      {selected.customer?.name || "Unknown customer"}
-                    </h3>
+              {selected.channel === "WhatsApp" && (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => openWhatsApp(selected.phone)}
+                >
+                  Open WhatsApp
+                </button>
+              )}
+            </div>
 
-                    <div className="conversation-channel">
-                      {channelLabel(selected.channel)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="conversation-actions">
-
-                  <select
-                    value={selected.assignedTo || "AI"}
-                    onChange={async (e) => {
-                      try {
-                        await updateConversation({
-                          assignedTo: e.target.value,
-                          status:
-                            e.target.value === "AI"
-                              ? "open"
-                              : "human",
-                        });
-                      } catch (err) {
-                        setError(err.message);
-                      }
-                    }}
-                  >
-                    {agents.map((agent) => (
-                      <option key={agent.id} value={agent.id}>
-                        {agent.type === "ai" ? "🤖 " : "👤 "}
-                        {agent.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  {selected.status !== "closed" && (
-                    <button
-                      className="secondary"
-                      type="button"
-                      onClick={() =>
-                        updateConversation({
-                          status: "closed",
-                        })
-                      }
-                    >
-                      ✓ Resolve
-                    </button>
-                  )}
-
-                  {selected.status === "closed" && (
-                    <button
-                      className="secondary"
-                      type="button"
-                      onClick={() =>
-                        updateConversation({
-                          status: "open",
-                        })
-                      }
-                    >
-                      Reopen
-                    </button>
-                  )}
-
-                  <button
-                    className="primary"
-                    type="button"
-                    onClick={() =>
-                      updateConversation({
-                        assignedTo:
-                          selected.assignedTo === "AI"
-                            ? "agent-001"
-                            : "AI",
-                        status:
-                          selected.assignedTo === "AI"
-                            ? "human"
-                            : "open",
-                      })
-                    }
-                  >
-                    {selected.assignedTo === "AI"
-                      ? "Pass to Human"
-                      : "Return to AI"}
-                  </button>
-
-                </div>
-              </div>
-
-              <div className="message-area">
-
-                {(selected.messages || []).map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={
-                      msg.sender === "customer"
-                        ? "message customer"
-                        : "message agent"
-                    }
-                  >
-                    <div className="message-bubble">
-                      <div>{msg.text}</div>
-
-                      <small>
-                        {msg.sender === "customer"
-                          ? "Customer"
-                          : msg.sender === "ai"
-                          ? "WASSAL AI"
-                          : "Agent"}{" "}
-                        · {formatTime(msg.createdAt)}
-                      </small>
-                    </div>
-                  </div>
-                ))}
-
-              </div>
-
-              <div className="composer-area">
-
-                <div className="quick-replies">
-                  <div className="quick-title">
-                    Quick Replies
-                  </div>
-
-                  <div className="quick-buttons">
-                    {quickReplies.map((reply) => (
-                      <button
-                        key={reply.id}
-                        type="button"
-                        onClick={() => useQuickReply(reply.text)}
-                      >
-                        {reply.title}
-                      </button>
-                    ))}
+            <div className="conversation-messages">
+              {(selected.messages || []).map((msg, index) => (
+                <div
+                  key={index}
+                  className={
+                    msg.from === "assistant"
+                      ? "message-row assistant"
+                      : "message-row customer"
+                  }
+                >
+                  <div className="message-bubble">
+                    <strong>
+                      {msg.from === "assistant"
+                        ? "Wassal Assistant"
+                        : selected.name}
+                    </strong>
+                    <p>{msg.text}</p>
+                    <small>{msg.time}</small>
                   </div>
                 </div>
+              ))}
+            </div>
 
-                <div className="copilot-box">
-                  <div>
-                    <strong>🤖 AI Copilot</strong>
-                    <span>
-                      Suggested response for your agent
-                    </span>
-                  </div>
+            <div className="conversation-composer">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Write a message..."
+              />
 
-                  <button
-                    type="button"
-                    onClick={generateCopilot}
-                  >
-                    Suggest
-                  </button>
-
-                  {copilot && (
-                    <button
-                      type="button"
-                      className="copilot-suggestion"
-                      onClick={() => {
-                        setMessage(copilot);
-                        setCopilot("");
-                      }}
-                    >
-                      {copilot}
-                    </button>
-                  )}
-                </div>
-
-                <div className="composer">
-
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Write a reply..."
-                    rows={3}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        !e.shiftKey
-                      ) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                  />
-
-                  <button
-                    className="primary send-button"
-                    type="button"
-                    disabled={
-                      sending || !message.trim()
-                    }
-                    onClick={() => sendMessage()}
-                  >
-                    {sending ? "Sending..." : "Send"}
-                  </button>
-
-                </div>
-
-              </div>
-            </>
-          )}
-        </main>
-
-        {showProfile && (
-          <aside className="customer-panel">
-
-            {selected ? (
-              <>
-                <div className="profile-header">
-                  <div className="profile-avatar">
-                    {(selected.customer?.name || "?")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-
-                  <h3>
-                    {selected.customer?.name ||
-                      "Unknown customer"}
-                  </h3>
-
-                  <span>
-                    {channelLabel(selected.channel)}
-                  </span>
-                </div>
-
-                <div className="profile-section">
-                  <label>Phone</label>
-                  <div>
-                    {selected.customer?.phone || "—"}
-                  </div>
-                </div>
-
-                <div className="profile-section">
-                  <label>Email</label>
-                  <div>
-                    {selected.customer?.email || "—"}
-                  </div>
-                </div>
-
-                <div className="profile-section">
-                  <label>Assigned Agent</label>
-
-                  <select
-                    value={selected.assignedTo || "AI"}
-                    onChange={(e) =>
-                      updateConversation({
-                        assignedTo: e.target.value,
-                        status:
-                          e.target.value === "AI"
-                            ? "open"
-                            : "human",
-                      })
-                    }
-                  >
-                    {agents.map((agent) => (
-                      <option
-                        key={agent.id}
-                        value={agent.id}
-                      >
-                        {agent.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="profile-section">
-                  <label>Tags</label>
-
-                  <div className="tags">
-                    {(selected.customer?.tags || []).map(
-                      (tag) => (
-                        <span key={tag}>{tag}</span>
-                      )
-                    )}
-
-                    {!selected.customer?.tags?.length && (
-                      <span>Lead</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="profile-section">
-                  <label>Notes</label>
-
-                  <textarea
-                    defaultValue={
-                      selected.customer?.notes || ""
-                    }
-                    placeholder="Customer notes..."
-                    onBlur={(e) =>
-                      updateConversation({
-                        customer: {
-                          notes: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="profile-section">
-                  <label>Status</label>
-
-                  <div className={statusClass(selected.status)}>
-                    {statusLabel(selected.status)}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="empty-state">
-                Customer profile
-              </div>
-            )}
-
-          </aside>
+              <button
+                type="button"
+                className="primary send-button"
+                onClick={sendMessage}
+                disabled={!message.trim()}
+              >
+                Send
+              </button>
+            </div>
+          </section>
         )}
-
       </div>
 
-      {error && (
-        <div className="conversation-error">
-          {error}
+      {showNew && (
+        <div
+          className="conversation-modal-overlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowNew(false);
+            }
+          }}
+        >
+          <div className="conversation-modal">
+            <div className="modal-header">
+              <div>
+                <div className="eyebrow">CUSTOMER COMMUNICATIONS</div>
+                <h3>New conversation</h3>
+              </div>
+
+              <button
+                type="button"
+                className="icon-action"
+                onClick={() => setShowNew(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <label>
+              Customer name
+              <input
+                autoFocus
+                type="text"
+                value={newForm.name}
+                onChange={(e) =>
+                  setNewForm({
+                    ...newForm,
+                    name: e.target.value,
+                  })
+                }
+                placeholder="Enter customer name"
+              />
+            </label>
+
+            <label>
+              Phone number
+              <input
+                type="tel"
+                value={newForm.phone}
+                onChange={(e) =>
+                  setNewForm({
+                    ...newForm,
+                    phone: e.target.value,
+                  })
+                }
+                placeholder="+961..."
+              />
+            </label>
+
+            <label>
+              Subject
+              <input
+                type="text"
+                value={newForm.subject}
+                onChange={(e) =>
+                  setNewForm({
+                    ...newForm,
+                    subject: e.target.value,
+                  })
+                }
+                placeholder="What is this conversation about?"
+              />
+            </label>
+
+            <label>
+              Channel
+              <select
+                value={newForm.channel}
+                onChange={(e) =>
+                  setNewForm({
+                    ...newForm,
+                    channel: e.target.value,
+                  })
+                }
+              >
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Voice">Voice</option>
+              </select>
+            </label>
+
+            <label>
+              First message
+              <textarea
+                value={newForm.message}
+                onChange={(e) =>
+                  setNewForm({
+                    ...newForm,
+                    message: e.target.value,
+                  })
+                }
+                placeholder="Write the first message..."
+                rows={4}
+              />
+            </label>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setShowNew(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="primary"
+                onClick={createConversation}
+              >
+                Create conversation
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       <style jsx>{`
-        .conversation-workspace {
-          width: 100%;
-        }
-
-        .conversation-topbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 18px;
-        }
-
-        .conversation-topbar h2 {
-          margin: 0;
-          font-size: 28px;
-        }
-
-        .conversation-topbar p {
-          margin: 6px 0 0;
-          opacity: .65;
-        }
-
-        .conversation-layout {
-          display: grid;
-          grid-template-columns: 300px minmax(0, 1fr) 280px;
-          min-height: 680px;
-          border: 1px solid rgba(255,255,255,.09);
-          border-radius: 18px;
-          overflow: hidden;
-          background: rgba(255,255,255,.025);
-        }
-
-        .conversation-list-panel,
-        .customer-panel {
-          background: rgba(255,255,255,.025);
-        }
-
-        .conversation-list-panel {
-          border-right: 1px solid rgba(255,255,255,.08);
-        }
-
-        .customer-panel {
-          border-left: 1px solid rgba(255,255,255,.08);
-          padding: 20px;
-        }
-
-        .conversation-search {
-          padding: 14px;
-        }
-
-        .conversation-search input,
-        .composer textarea,
-        .profile-section textarea,
-        .profile-section select,
-        .conversation-actions select {
-          width: 100%;
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(0,0,0,.18);
-          color: inherit;
-          border-radius: 10px;
-          padding: 10px 12px;
-          outline: none;
-        }
-
-        .conversation-filters {
-          display: flex;
-          gap: 6px;
-          overflow-x: auto;
-          padding: 0 12px 12px;
-        }
-
-        .filter,
-        .quick-buttons button {
-          border: 1px solid rgba(255,255,255,.1);
-          background: transparent;
-          color: inherit;
-          border-radius: 999px;
-          padding: 7px 10px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-
-        .filter.active {
-          background: rgba(255,255,255,.12);
-        }
-
-        .conversation-item {
-          width: 100%;
-          display: flex;
-          gap: 10px;
-          padding: 14px;
-          border: 0;
-          border-top: 1px solid rgba(255,255,255,.06);
-          background: transparent;
-          color: inherit;
-          text-align: left;
-          cursor: pointer;
-        }
-
-        .conversation-item:hover,
-        .conversation-item.active {
-          background: rgba(255,255,255,.07);
-        }
-
-        .conversation-avatar,
-        .large-avatar,
-        .profile-avatar {
-          flex: 0 0 auto;
-          display: grid;
-          place-items: center;
-          border-radius: 50%;
-          font-weight: 800;
-          background: rgba(255,255,255,.12);
-        }
-
-        .conversation-avatar {
-          width: 38px;
-          height: 38px;
-        }
-
-        .conversation-item-body {
-          min-width: 0;
+        .conversation-messages {
           flex: 1;
-        }
-
-        .conversation-item-head {
-          display: flex;
-          justify-content: space-between;
-          gap: 8px;
-        }
-
-        .conversation-item-head span,
-        .conversation-item-preview,
-        .conversation-channel {
-          opacity: .6;
-          font-size: 12px;
-        }
-
-        .conversation-item-preview {
-          margin: 5px 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .conversation-item-meta {
-          display: flex;
-          justify-content: space-between;
-          gap: 5px;
-          font-size: 11px;
-        }
-
-        .conversation-main {
+          min-height: 260px;
+          max-height: 460px;
+          overflow-y: auto;
+          padding: 18px;
           display: flex;
           flex-direction: column;
-          min-width: 0;
+          gap: 12px;
         }
 
-        .conversation-header {
+        .message-row {
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 15px;
-          padding: 16px 18px;
-          border-bottom: 1px solid rgba(255,255,255,.08);
         }
 
-        .conversation-customer-title {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .conversation-customer-title h3 {
-          margin: 0 0 4px;
-        }
-
-        .large-avatar {
-          width: 44px;
-          height: 44px;
-        }
-
-        .conversation-actions {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .conversation-actions button,
-        .conversation-actions select {
-          width: auto;
-        }
-
-        .primary,
-        .secondary {
-          border-radius: 9px;
-          padding: 9px 13px;
-          cursor: pointer;
-        }
-
-        .primary {
-          border: 0;
-          background: #fff;
-          color: #111;
-          font-weight: 700;
-        }
-
-        .secondary {
-          border: 1px solid rgba(255,255,255,.13);
-          background: transparent;
-          color: inherit;
-        }
-
-        .message-area {
-          flex: 1;
-          overflow-y: auto;
-          padding: 22px;
-        }
-
-        .message {
-          display: flex;
-          margin-bottom: 12px;
-        }
-
-        .message.customer {
+        .message-row.customer {
           justify-content: flex-start;
         }
 
-        .message.agent {
+        .message-row.assistant {
           justify-content: flex-end;
         }
 
         .message-bubble {
-          max-width: 72%;
-          padding: 11px 14px;
+          max-width: 78%;
+          padding: 12px 15px;
           border-radius: 14px;
-          background: rgba(255,255,255,.08);
+          background: var(--surface-2, #f4f6f8);
         }
 
-        .message.agent .message-bubble {
-          background: rgba(255,255,255,.14);
+        .message-row.assistant .message-bubble {
+          background: var(--accent, #111827);
+          color: white;
+        }
+
+        .message-bubble strong {
+          display: block;
+          font-size: 12px;
+          margin-bottom: 4px;
+        }
+
+        .message-bubble p {
+          margin: 0 0 5px;
+          line-height: 1.45;
         }
 
         .message-bubble small {
-          display: block;
-          margin-top: 5px;
-          opacity: .5;
+          opacity: 0.7;
           font-size: 10px;
         }
 
-        .composer-area {
-          border-top: 1px solid rgba(255,255,255,.08);
+        .conversation-composer {
+          display: flex;
+          gap: 10px;
           padding: 14px;
+          border-top: 1px solid rgba(127,127,127,.18);
         }
 
-        .quick-title,
-        .profile-section label {
-          display: block;
-          font-size: 11px;
-          opacity: .55;
-          margin-bottom: 7px;
-        }
-
-        .quick-buttons {
-          display: flex;
-          gap: 6px;
-          overflow-x: auto;
-          margin-bottom: 12px;
-        }
-
-        .copilot-box {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          align-items: center;
-          padding: 10px;
-          margin-bottom: 10px;
-          border: 1px solid rgba(255,255,255,.1);
-          border-radius: 12px;
-        }
-
-        .copilot-box > div:first-child {
-          display: flex;
-          flex-direction: column;
+        .conversation-composer input {
           flex: 1;
-          min-width: 150px;
-        }
-
-        .copilot-box span {
-          opacity: .55;
-          font-size: 11px;
-        }
-
-        .copilot-box button {
-          border: 0;
-          border-radius: 8px;
-          padding: 7px 10px;
-          cursor: pointer;
-        }
-
-        .copilot-suggestion {
-          width: 100%;
-          text-align: left;
-          background: rgba(255,255,255,.07);
+          min-width: 0;
+          padding: 12px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(127,127,127,.3);
+          background: transparent;
           color: inherit;
+          outline: none;
         }
 
-        .composer {
+        .send-button:disabled {
+          opacity: .45;
+          cursor: not-allowed;
+        }
+
+        .conversation-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          background: rgba(0,0,0,.55);
           display: flex;
-          gap: 8px;
-          align-items: flex-end;
-        }
-
-        .composer textarea {
-          resize: vertical;
-          flex: 1;
-        }
-
-        .send-button {
-          min-width: 75px;
-        }
-
-        .profile-header {
-          text-align: center;
-          padding-bottom: 20px;
-          border-bottom: 1px solid rgba(255,255,255,.08);
-        }
-
-        .profile-avatar {
-          width: 62px;
-          height: 62px;
-          margin: 0 auto 10px;
-          font-size: 22px;
-        }
-
-        .profile-header h3 {
-          margin: 0 0 5px;
-        }
-
-        .profile-header span {
-          opacity: .55;
-          font-size: 12px;
-        }
-
-        .profile-section {
-          padding: 15px 0;
-          border-bottom: 1px solid rgba(255,255,255,.06);
-        }
-
-        .profile-section textarea {
-          min-height: 75px;
-          resize: vertical;
-        }
-
-        .tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .tags span {
-          padding: 5px 8px;
-          border-radius: 999px;
-          background: rgba(255,255,255,.1);
-          font-size: 11px;
-        }
-
-        .status {
-          display: inline-block;
-          padding: 5px 8px;
-          border-radius: 999px;
-          font-size: 11px;
-        }
-
-        .status.open {
-          background: rgba(50,180,100,.15);
-        }
-
-        .status.pending {
-          background: rgba(220,170,50,.15);
-        }
-
-        .status.human {
-          background: rgba(80,140,220,.15);
-        }
-
-        .status.closed {
-          background: rgba(150,150,150,.15);
-        }
-
-        .conversation-empty,
-        .empty-state {
-          display: grid;
-          place-items: center;
-          text-align: center;
-          min-height: 200px;
-          opacity: .65;
+          align-items: center;
+          justify-content: center;
           padding: 20px;
         }
 
-        .empty-icon {
-          font-size: 40px;
+        .conversation-modal {
+          width: min(520px, 100%);
+          max-height: 90vh;
+          overflow-y: auto;
+          background: var(--card, white);
+          color: inherit;
+          border-radius: 18px;
+          padding: 22px;
+          box-shadow: 0 25px 80px rgba(0,0,0,.3);
         }
 
-        .conversation-error {
-          margin-top: 10px;
-          padding: 10px 12px;
+        .modal-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 18px;
+        }
+
+        .conversation-modal h3 {
+          margin: 4px 0 0;
+        }
+
+        .conversation-modal label {
+          display: block;
+          font-size: 13px;
+          font-weight: 600;
+          margin-top: 13px;
+        }
+
+        .conversation-modal input,
+        .conversation-modal select,
+        .conversation-modal textarea {
+          width: 100%;
+          box-sizing: border-box;
+          margin-top: 7px;
+          padding: 12px 13px;
           border-radius: 10px;
-          background: rgba(220,70,70,.12);
+          border: 1px solid rgba(127,127,127,.3);
+          background: transparent;
+          color: inherit;
+          font: inherit;
+          outline: none;
         }
 
-        @media (max-width: 1100px) {
-          .conversation-layout {
-            grid-template-columns: 280px minmax(0,1fr);
-          }
-
-          .customer-panel {
-            display: none;
-          }
+        .conversation-modal textarea {
+          resize: vertical;
         }
 
-        @media (max-width: 760px) {
-          .conversation-layout {
-            grid-template-columns: 1fr;
-          }
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 20px;
+        }
 
-          .conversation-list-panel {
-            display: none;
-          }
+        .clear-search {
+          border: 0;
+          background: transparent;
+          cursor: pointer;
+          font-size: 20px;
+          opacity: .65;
+        }
 
-          .conversation-header {
+        .status-button {
+          border: 0;
+          background: transparent;
+          color: inherit;
+          cursor: pointer;
+          font: inherit;
+        }
+
+        @media (max-width: 700px) {
+          .conversation-composer {
             flex-direction: column;
-            align-items: stretch;
           }
 
-          .conversation-actions {
-            flex-wrap: wrap;
+          .conversation-composer button {
+            width: 100%;
           }
 
-          .conversation-actions button,
-          .conversation-actions select {
-            flex: 1;
+          .message-bubble {
+            max-width: 90%;
           }
         }
       `}</style>
@@ -3691,168 +3242,6 @@ function CallChatPage() {
     setAgentReply("");
 
     try {
-      // WASSAL CONTACT MEMORY
-      // ContactsPage already stores contacts in localStorage.
-      let savedContacts = [];
-
-      try {
-        const raw = localStorage.getItem("wassal_contacts");
-        const parsed = raw ? JSON.parse(raw) : [];
-        savedContacts = Array.isArray(parsed) ? parsed : [];
-      } catch (error) {
-        console.warn("Could not read WASSAL contacts:", error);
-      }
-
-      // Normalize Lebanese / international numbers
-      const normalizeAgentNumber = (value) => {
-        let n = String(value || "").replace(/[^\d+]/g, "");
-
-        if (n.startsWith("+961")) return n;
-        if (n.startsWith("00961")) return "+" + n.slice(2);
-
-        if (/^0\d{7,8}$/.test(n)) {
-          return "+961" + n.slice(1);
-        }
-
-        if (/^\d{7,8}$/.test(n)) {
-          return "+961" + n;
-        }
-
-        return n;
-      };
-
-      const command = agentCommand.trim();
-
-      /*
-       * Examples understood directly by WASSAL:
-       *
-       * ابعت لأحمد: مرحبا كيفك
-       * ابعت لاحمد مرحبا كيفك
-       * اكتب لأحمد: وينك؟
-       * أرسل إلى أحمد: مرحبا
-       * send to Ahmad: hello
-       */
-
-      let contactName = "";
-      let commandMessage = "";
-
-      const arabicMatch = command.match(
-        /(?:ابعت|أبعت|ارسل|أرسل|اكتب|ابعث|بعت)\s+(?:ل|لـ|الى|إلى)\s+([^:،,]+?)\s*(?::|،|,)\s*(.+)$/i
-      );
-
-      const arabicMatchNoColon = command.match(
-        /(?:ابعت|أبعت|ارسل|أرسل|اكتب|ابعث|بعت)\s+(?:ل|لـ|الى|إلى)\s+(.+?)\s+(.+)$/i
-      );
-
-      const englishMatch = command.match(
-        /(?:send|message|text)\s+(?:to)\s+([^:,-]+?)\s*(?::|,|-)\s*(.+)$/i
-      );
-
-      if (arabicMatch) {
-        contactName = arabicMatch[1].trim();
-        commandMessage = arabicMatch[2].trim();
-      } else if (arabicMatchNoColon) {
-        contactName = arabicMatchNoColon[1].trim();
-        commandMessage = arabicMatchNoColon[2].trim();
-      } else if (englishMatch) {
-        contactName = englishMatch[1].trim();
-        commandMessage = englishMatch[2].trim();
-      }
-
-      // If the command doesn't contain a message, keep the manually
-      // entered WhatsApp message as a fallback.
-      if (!commandMessage && message.trim()) {
-        commandMessage = message.trim();
-      }
-
-      // Remove common Arabic articles / command noise from the name.
-      contactName = contactName
-        .replace(/^(ال|لل)/, "")
-        .replace(/[؟?!.,،:]+$/, "")
-        .trim();
-
-      // Find contact by name.
-      let matchedContact = null;
-
-      if (contactName) {
-        const wanted = contactName
-          .toLowerCase()
-          .replace(/[إأآا]/g, "ا")
-          .replace(/ة/g, "ه")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        matchedContact = savedContacts.find((contact) => {
-          const name = String(contact?.name || "")
-            .toLowerCase()
-            .replace(/[إأآا]/g, "ا")
-            .replace(/ة/g, "ه")
-            .replace(/\s+/g, " ")
-            .trim();
-
-          return (
-            name === wanted ||
-            name.includes(wanted) ||
-            wanted.includes(name)
-          );
-        });
-      }
-
-      // Contact was requested but not found.
-      if (contactName && !matchedContact) {
-        setAgentReply(
-          "❌ ما لقيت \"" +
-          contactName +
-          "\" ضمن Contacts في WASSAL.\n\n" +
-          "افتح Contacts وأضف الاسم والرقم، وبعدها جرّب الأمر من جديد."
-        );
-        setAgentReady(false);
-        return;
-      }
-
-      // If a contact was found, connect the operation to its stored number.
-      if (matchedContact) {
-        const contactNumber = normalizeAgentNumber(matchedContact.phone);
-
-        if (!contactNumber) {
-          setAgentReply(
-            "❌ لقيت " +
-            matchedContact.name +
-            " لكن ما في رقم هاتف محفوظ لهذا Contact."
-          );
-          setAgentReady(false);
-          return;
-        }
-
-        setNumber(contactNumber);
-
-        if (commandMessage) {
-          setMessage(commandMessage);
-        }
-
-        setAgentReply(
-          "👤 Contact: " +
-          matchedContact.name +
-          "\n" +
-          "📱 Number: " +
-          contactNumber +
-          "\n" +
-          "💬 Message: " +
-          (commandMessage || "No message") +
-          "\n\n" +
-          "WASSAL AI جهّز العملية. لم يتم إرسال أي شيء بعد.\n" +
-          "اضغط SEND / EXECUTE فقط إذا كنت موافقًا."
-        );
-
-        setAgentReady(Boolean(commandMessage));
-        return;
-      }
-
-      /*
-       * No contact name was detected.
-       * Keep the existing AI preparation behavior for commands
-       * that don't explicitly target a saved contact.
-       */
       const response = await fetch("/api/agent", {
         method: "POST",
         headers: {
@@ -3881,7 +3270,6 @@ function CallChatPage() {
 
       setAgentReply(reply);
       setAgentReady(true);
-
     } catch (error) {
       console.error(error);
 
@@ -4251,35 +3639,13 @@ function AIAgentModule() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hello! I'm WASSAL AI. How can I help you today?",
+      text: "مرحباً! أنا WASSAL AI 🤖 كيف فيني ساعدك اليوم؟",
     },
   ]);
   const [loading, setLoading] = useState(false);
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef(null);
 
-  function speakReply(text) {
-    try {
-      if (!("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(String(text || ""));
-      utterance.lang = /[\u0600-\u06FF]/.test(String(text || ""))
-        ? "ar-LB"
-        : "en-US";
-      utterance.rate = 1;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
-    } catch (error) {
-      console.warn("Voice reply error:", error);
-    }
-  }
-
-  async function sendMessage(textOverride = null, speak = false) {
-    const text = String(
-      textOverride !== null ? textOverride : message
-    ).trim();
-
+  async function sendMessage() {
+    const text = message.trim();
     if (!text || loading) return;
 
     setMessages((prev) => [...prev, { role: "user", text }]);
@@ -4289,118 +3655,34 @@ function AIAgentModule() {
     try {
       const response = await fetch("/api/agent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ message: text }),
       });
 
       const data = await response.json();
 
-      const reply =
-        data?.reply ||
-        data?.error ||
-        "I couldn't complete that request right now.";
-
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: reply },
+        {
+          role: "assistant",
+          text:
+            data?.reply ||
+            data?.error ||
+            "ما قدرت أنفذ الطلب حالياً.",
+        },
       ]);
-
-      if (speak) speakReply(reply);
-    } catch (error) {
-      console.error(error);
-
-      const reply = "There was a connection error with WASSAL AI.";
-
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: reply },
+        {
+          role: "assistant",
+          text: "صار خطأ بالاتصال مع WASSAL AI.",
+        },
       ]);
-
-      if (speak) speakReply(reply);
     } finally {
       setLoading(false);
-    }
-  }
-
-  function stopVoice() {
-    try {
-      recognitionRef.current?.stop();
-    } catch {}
-
-    recognitionRef.current = null;
-    setListening(false);
-  }
-
-  function startVoice() {
-    if (typeof window === "undefined") return;
-
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert(
-        "Voice recognition is not supported in this browser. Please use Chrome on Android."
-      );
-      return;
-    }
-
-    if (listening) {
-      stopVoice();
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-
-      recognition.lang = "ar-LB";
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognitionRef.current = recognition;
-
-      recognition.onstart = () => {
-        setListening(true);
-      };
-
-      recognition.onresult = (event) => {
-        const transcript =
-          event.results?.[0]?.[0]?.transcript?.trim();
-
-        if (transcript) {
-          setMessage(transcript);
-          sendMessage(transcript, true);
-        }
-      };
-
-      recognition.onerror = (event) => {
-        console.warn("WASSAL voice error:", event.error);
-
-        if (
-          event.error === "not-allowed" ||
-          event.error === "service-not-allowed"
-        ) {
-          alert("Please allow microphone access for WASSAL AI.");
-        }
-
-        setListening(false);
-        recognitionRef.current = null;
-      };
-
-      recognition.onend = () => {
-        setListening(false);
-
-        if (recognitionRef.current === recognition) {
-          recognitionRef.current = null;
-        }
-      };
-
-      recognition.start();
-    } catch (error) {
-      console.error("Could not start voice:", error);
-      setListening(false);
-      recognitionRef.current = null;
     }
   }
 
@@ -4411,28 +3693,16 @@ function AIAgentModule() {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
-
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
   return (
     <div className="page">
       <div
         className="card"
         style={{
-          maxWidth: "1100px",
+          maxWidth: "1000px",
           margin: "0 auto",
           width: "100%",
-          height: "calc(100vh - 165px)",
-          minHeight: "560px",
+          height: "calc(100vh - 190px)",
+          minHeight: "500px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -4441,12 +3711,9 @@ function AIAgentModule() {
         <div className="card-head">
           <div>
             <h3>WASSAL AI Agent</h3>
-            <p>AI Assistant · Text & Voice</p>
+            <p>Arabic & English · AI Assistant</p>
           </div>
-
-          <span className="status">
-            {listening ? "LISTENING" : "ONLINE"}
-          </span>
+          <span className="status">LIVE</span>
         </div>
 
         <div
@@ -4464,7 +3731,9 @@ function AIAgentModule() {
               key={index}
               style={{
                 alignSelf:
-                  item.role === "user" ? "flex-end" : "flex-start",
+                  item.role === "user"
+                    ? "flex-end"
+                    : "flex-start",
                 maxWidth: "78%",
                 padding: "12px 15px",
                 borderRadius: "14px",
@@ -4491,119 +3760,62 @@ function AIAgentModule() {
                 opacity: 0.7,
               }}
             >
-              WASSAL AI is thinking...
+              WASSAL AI يفكر...
             </div>
           )}
         </div>
 
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) 52px 100px",
-            gap: "10px",
+            display: "flex",
+            gap: "8px",
             paddingTop: "14px",
-            borderTop: "1px solid rgba(255,255,255,.07)",
-            alignItems: "center",
+            borderTop:
+              "1px solid rgba(255,255,255,.07)",
           }}
         >
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message WASSAL AI..."
+            placeholder="اكتب رسالتك هنا..."
             rows={2}
             disabled={loading}
             style={{
-              width: "100%",
-              minHeight: "52px",
+              flex: 1,
               resize: "none",
-              padding: "13px 14px",
+              padding: "12px 14px",
               borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,.1)",
-              background: "rgba(255,255,255,.04)",
+              border:
+                "1px solid rgba(255,255,255,.1)",
+              background:
+                "rgba(255,255,255,.04)",
               color: "inherit",
               outline: "none",
               fontFamily: "inherit",
-              boxSizing: "border-box",
             }}
           />
 
           <button
-            type="button"
-            onClick={startVoice}
-            disabled={loading}
-            aria-label={listening ? "Stop voice" : "Start voice"}
-            title={listening ? "Stop voice" : "Voice"}
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              border: listening
-                ? "1px solid rgba(255,90,90,.5)"
-                : "1px solid rgba(255,255,255,.1)",
-              background: listening
-                ? "rgba(255,70,70,.14)"
-                : "rgba(255,255,255,.055)",
-              color: "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.5 : 1,
-            }}
-          >
-            <svg
-              width="21"
-              height="21"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {listening ? (
-                <rect x="7" y="7" width="10" height="10" rx="2" />
-              ) : (
-                <>
-                  <rect x="9" y="3" width="6" height="11" rx="3" />
-                  <path d="M5 11a7 7 0 0 0 14 0" />
-                  <path d="M12 18v3" />
-                  <path d="M9 21h6" />
-                </>
-              )}
-            </svg>
-          </button>
-
-          <button
             className="primary"
-            type="button"
-            onClick={() => sendMessage()}
-            disabled={loading || !message.trim()}
-            style={{
-              minWidth: "100px",
-              height: "52px",
-            }}
+            onClick={sendMessage}
+            disabled={
+              loading || !message.trim()
+            }
+            style={{ minWidth: "110px" }}
           >
-            {loading ? "..." : "Send →"}
+            {loading ? "..." : "إرسال ↗"}
           </button>
-        </div>
-
-        <div
-          style={{
-            fontSize: "12px",
-            opacity: 0.5,
-            paddingTop: "9px",
-            textAlign: "right",
-          }}
-        >
-          Enter to send · Voice to talk
         </div>
       </div>
     </div>
   );
 }
+
+
+/* =========================
+   CALENDAR
+========================= */
 
 function CalendarModule() {
   const [events, setEvents] = useState([]);

@@ -1,0 +1,74 @@
+import { executeTool } from "@/lib/
+
+mkdir -p app/api/admin
+
+cat > app/api/admin/route.js <<'EOF'
+const startedAt = Date.now();
+
+export async function GET() {
+  return Response.json({
+    success: true,
+    dashboard: {
+      status: "online",
+      service: "WASSAL AI",
+      version: "production-core-1",
+      uptimeSeconds: Math.floor(
+        (Date.now() - startedAt) / 1000
+      ),
+    },
+
+    usage: {
+      requests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      totalTokens: 0,
+      estimatedCostUsd: 0,
+    },
+
+    performance: {
+      averageLatencyMs: 0,
+      successRate: 100,
+      errorRate: 0,
+    },
+
+    budget: {
+      monthlyLimitUsd: 100,
+      currentSpendUsd: 0,
+      percentageUsed: 0,
+      alertLevel: "normal",
+    },
+
+    providers: [
+      {
+        id: "openai",
+        name: "OpenAI",
+        role: "primary",
+        status: process.env.OPENAI_API_KEY
+          ? "configured"
+          : "missing_key",
+      },
+      {
+        id: "anthropic",
+        name: "Anthropic Claude",
+        role: "fallback",
+        status: "not_configured",
+      },
+      {
+        id: "google",
+        name: "Google Gemini",
+        role: "fallback",
+        status: "not_configured",
+      },
+    ],
+
+    agent: {
+      systemPrompt: "WASSAL AI bilingual professional assistant",
+      tools: [
+        "calculator",
+        "task",
+        "time",
+        "open_url",
+      ],
+    },
+  });
+}

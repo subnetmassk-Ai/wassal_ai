@@ -25,3 +25,467 @@ input {
 button {
   -webkit-tap-highlight-color: transparent;
 }
+
+
+/* ===== WASSAL AI — Dashboard Agent ===== */
+
+.dashboard-ai-agent-top {
+  width: 100%;
+  margin: 0 0 24px;
+  padding: 22px;
+  border: 1px solid rgba(120, 130, 150, .18);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(247,249,252,.98));
+  box-shadow: 0 12px 35px rgba(15,23,42,.08);
+}
+
+.dashboard-ai-agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.dashboard-ai-agent-title {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.dashboard-ai-agent-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #111827;
+  color: white;
+  flex: 0 0 auto;
+}
+
+.dashboard-ai-agent-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.dashboard-ai-agent-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+
+.dashboard-ai-agent-title p {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.dashboard-ai-agent-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #475467;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.dashboard-ai-agent-status span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34,197,94,.10);
+}
+
+.dashboard-ai-agent-message-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-ai-agent-input {
+  flex: 1;
+  height: 52px;
+  border: 1px solid #d9dee8;
+  border-radius: 15px;
+  padding: 0 17px;
+  outline: none;
+  background: #fff;
+  color: #101828;
+  font-size: 14px;
+  transition: .2s ease;
+}
+
+.dashboard-ai-agent-input:focus {
+  border-color: #98a2b3;
+  box-shadow: 0 0 0 4px rgba(16,24,40,.05);
+}
+
+.dashboard-ai-agent-input::placeholder {
+  color: #98a2b3;
+}
+
+.dashboard-ai-agent-voice {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border: 1px solid #d9dee8;
+  border-radius: 15px;
+  background: #fff;
+  color: #111827;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.dashboard-ai-agent-voice:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.dashboard-ai-agent-voice svg {
+  width: 22px;
+  height: 22px;
+}
+
+.dashboard-ai-agent-send {
+  height: 52px;
+  min-width: 100px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 15px;
+  background: #111827;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.dashboard-ai-agent-send:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+}
+
+.dashboard-ai-agent-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 700px) {
+  .dashboard-ai-agent-top {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .dashboard-ai-agent-header {
+    align-items: flex-start;
+  }
+
+  .dashboard-ai-agent-title p {
+    display: none;
+  }
+
+  .dashboard-ai-agent-message-row {
+    gap: 7px;
+  }
+
+  .dashboard-ai-agent-voice {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+
+  .dashboard-ai-agent-send {
+    min-width: 76px;
+    padding: 0 12px;
+  }
+}
+
+/* ===== FINAL AI AGENT MESSAGE BAR — DESKTOP ===== */
+
+.dashboard-ai-agent-message-row {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 56px 108px !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.dashboard-ai-agent-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 54px !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-ai-agent-voice {
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  padding: 0 !important;
+  flex: none !important;
+}
+
+.dashboard-ai-agent-send {
+  width: 108px !important;
+  height: 54px !important;
+  min-width: 108px !important;
+  padding: 0 16px !important;
+  flex: none !important;
+}
+
+@media (max-width: 700px) {
+  .dashboard-ai-agent-message-row {
+    grid-template-columns: minmax(0, 1fr) 50px 82px !important;
+    gap: 7px !important;
+  }
+
+  .dashboard-ai-agent-input {
+    height: 50px !important;
+  }
+
+  .dashboard-ai-agent-voice {
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+  }
+
+  .dashboard-ai-agent-send {
+    width: 82px !important;
+    height: 50px !important;
+    min-width: 82px !important;
+  }
+}
+
+
+/* ===== WASSAL AI — FINAL MESSAGE BAR FIX ===== */
+
+.dashboard-ai-agent-message-row {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-ai-agent-input {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 56px !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.dashboard-ai-agent-voice {
+  flex: 0 0 56px !important;
+  width: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+  height: 56px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-ai-agent-send {
+  flex: 0 0 110px !important;
+  width: 110px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
+  height: 56px !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .dashboard-ai-agent-message-row {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 7px !important;
+  }
+
+  .dashboard-ai-agent-input {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 50px !important;
+  }
+
+  .dashboard-ai-agent-voice {
+    flex: 0 0 50px !important;
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    height: 50px !important;
+  }
+
+  .dashboard-ai-agent-send {
+    flex: 0 0 82px !important;
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    height: 50px !important;
+    padding: 0 10px !important;
+  }
+}
+
+
+/* ===== MOVE AI AGENT BAR HIGHER ON DESKTOP ===== */
+
+.dashboard-ai-agent-top {
+  margin-top: 0 !important;
+  margin-bottom: 18px !important;
+}
+
+.dashboard-ai-agent-message-row {
+  margin-top: 4px !important;
+}
+
+@media (min-width: 701px) {
+  .dashboard-ai-agent-top {
+    position: relative !important;
+    top: -18px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-ai-agent-top {
+    top: 0 !important;
+  }
+}
+
+
+/* ===== MOVE AI AGENT BAR HIGHER ON DESKTOP ===== */
+
+.dashboard-ai-agent-top {
+  margin-top: 0 !important;
+  margin-bottom: 18px !important;
+}
+
+.dashboard-ai-agent-message-row {
+  margin-top: 4px !important;
+}
+
+@media (min-width: 701px) {
+  .dashboard-ai-agent-top {
+    position: relative !important;
+    top: -18px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-ai-agent-top {
+    top: 0 !important;
+  }
+}
+
+
+/* WASSAL AI Agent - Dashboard Message Bar */
+.dashboard-ai-agent-message-row {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 52px 100px !important;
+  gap: 10px !important;
+  align-items: center !important;
+  margin-top: 18px;
+}
+
+.dashboard-ai-agent-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 52px !important;
+  padding: 0 18px !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.045) !important;
+  color: inherit !important;
+  font-size: 15px !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-ai-agent-input:focus {
+  border-color: rgba(100,150,255,.55) !important;
+}
+
+.dashboard-ai-agent-voice {
+  width: 52px !important;
+  height: 52px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.055) !important;
+  color: inherit !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.dashboard-ai-agent-voice svg {
+  width: 21px !important;
+  height: 21px !important;
+}
+
+.dashboard-ai-agent-send {
+  width: 100px !important;
+  height: 52px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+}
+
+.dashboard-ai-agent-send svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+@media (max-width: 700px) {
+  .dashboard-ai-agent-message-row {
+    grid-template-columns: minmax(0, 1fr) 50px 88px !important;
+    gap: 8px !important;
+  }
+
+  .dashboard-ai-agent-input,
+  .dashboard-ai-agent-voice {
+    height: 48px !important;
+  }
+
+  .dashboard-ai-agent-send {
+    height: 48px !important;
+    width: 88px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboard-ai-agent-message-row {
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+  }
+
+  .dashboard-ai-agent-send {
+    display: none !important;
+  }
+}
+
