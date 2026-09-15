@@ -36,9 +36,7 @@ export default function LoginPage() {
 
         if (error) throw error;
 
-        setMessage(
-          "تم إنشاء الحساب. افتح بريدك الإلكتروني لتأكيده، ثم سجّل دخولك."
-        );
+        setMessage("تم إنشاء الحساب. تحقق من بريدك الإلكتروني ثم سجّل دخولك.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -65,6 +63,7 @@ export default function LoginPage() {
         <h1 style={styles.title}>
           {mode === "login" ? "أهلًا بعودتك" : "أنشئ حساب Wassal"}
         </h1>
+
         <p style={styles.subtitle}>
           {mode === "login"
             ? "سجّل دخولك لإدارة وكلاءك ومحادثات عملائك."
@@ -86,7 +85,7 @@ export default function LoginPage() {
               </label>
 
               <label style={styles.label}>
-                اسم الشركة أو مساحة العمل
+                اسم الشركة
                 <input
                   style={styles.input}
                   value={workspaceName}
